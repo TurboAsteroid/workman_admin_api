@@ -1,0 +1,51 @@
+extends layout
+
+block content
+    div.row.example_row
+        label
+        input(type="text", multiple)
+        input(type="number", placeholder="задержка минут", name="language", value="0")
+    button.save_group save group
+    button.add_string new string
+    div.rows_wrap
+
+    script.
+        let rows = {};
+        $(".save_group").on('click', function () {
+            let insert_val = [];
+            for (let i in rows) {
+                for (let j in rows[i].optionsCollection.selectedValues) {
+                    insert_val.push({token: j, row_number: i, group_name: "test"});
+                }
+            }
+            $.post({
+                type: 'POST',
+                url: '/group/save',
+                data: {data: JSON.stringify(insert_val)},
+                success: function () {
+                    alert('готово');
+                },
+                dataType: 'json'
+            });
+        });
+        $(".add_string").on('click', function () {
+            let newstring = $(".example_row").clone();
+            let last_id = $(".rows_wrap .row").length;
+            newstring.find('label').text(++last_id);
+            newstring.removeClass("example_row").attr("row_id", last_id);
+            $(".rows_wrap").append(newstring[0]);
+            activatTags(newstring.find('input'), last_id);
+        })
+        function activatTags (element, row_num) {
+            let options = {
+                url: "/getusers",
+                loadOnce: true,
+                //initialValue :[{"text": "Algeria", "value" : "Algeria"}]
+            };
+            //element.fastselect(options);
+
+            var fastSelectInstance = new $.Fastselect(element.get(0), options);
+            rows[row_num] = fastSelectInstance;
+        }
+        activatTags($('.row:not(.example_row) input'), 1);
+
