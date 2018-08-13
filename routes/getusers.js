@@ -1,7 +1,8 @@
-module.exports = function(app, config, firebase_admin, mysql_config) {
+module.exports = function(app, config, firebase_admin) {
     var express = require('express');
     var router = express.Router();
 
+    const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
 
 
@@ -9,11 +10,7 @@ module.exports = function(app, config, firebase_admin, mysql_config) {
     router.get('/', function (req, res, next) {
         let getusers = async function () {
             const connection = await mysql.createConnection(mysql_config);
-            const [rows, fields] = await connection.execute('select * from Users', []);
-            rows.forEach(function (item) {
-                item.text = item.name;
-                item.value = item.id;
-            });
+            const [rows, fields] = await connection.execute('select name as text, id as value from Users', []);
             res.json(rows);
         };
         getusers();
