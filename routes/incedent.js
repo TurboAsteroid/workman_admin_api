@@ -1,7 +1,7 @@
-module.exports = function(app, config, firebase_admin, mysql_config) {
+module.exports = function(app, config, firebase_admin) {
     var express = require('express');
     // var uniqid = require('uniqid');
-
+    const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
 
     async function addIncedent (group_id, incedent_id) {
@@ -30,9 +30,29 @@ module.exports = function(app, config, firebase_admin, mysql_config) {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select incedent.*, incedentgroups.group_id, incedentgroups.complete, incedentgroups.time_sent, groups.name ' +
             'from incedent ' +
-            'left join incedentgroups on incedentgroups.incedent_id = incedent.id ' +
-            'left join groups on incedentgroups.group_id = groups.id  ', []);
-
+                'left join incedentgroups on incedentgroups.incedent_id = incedent.id ' +
+                'left join groups on incedentgroups.group_id = groups.id  ', []);
+            const [Urows, Ufields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id');
+            let rows_tmp = {};
+            for (let j in Urows) {
+                if (!rows_tmp[Urows[j].group_id]) {
+                    rows_tmp[Urows[j].group_id] = {};
+                }
+                if (!rows_tmp[Urows[j].group_id][Urows[j].row_number]) {
+                    rows_tmp[Urows[j].group_id][Urows[j].row_number] = {
+                        row_number: Urows[j].row_number,
+                        users: []
+                    };
+                }
+                rows_tmp[Urows[j].group_id][Urows[j].row_number].users.push({value: Urows[j].user_id, text: Urows[j].name});
+            }
+            for (let m in rows_tmp) {
+                let tmp = [];
+                for (let n in rows_tmp[m]) {
+                    tmp.push(rows_tmp[m][n]);
+                }
+                rows_tmp[m] = tmp;
+            }
             let tmp_result = {};
             for (let i in rows) {
                 if (!tmp_result[rows[i].id]) {
@@ -48,7 +68,8 @@ module.exports = function(app, config, firebase_admin, mysql_config) {
                 tmp_result[rows[i].id].groups_t.push({
                     id: rows[i].group_id,
                     complete: rows[i].complete,
-                    name: rows[i].name
+                    name: rows[i].name,
+                    rows: rows_tmp[rows[i].group_id]
                 });
             }
 
@@ -63,7 +84,7 @@ module.exports = function(app, config, firebase_admin, mysql_config) {
                 result_array.push(tmp);
             }
 
-            console.log(rows);
+            // console.log(rows);
             res.json(result_array);
         };
         result();

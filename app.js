@@ -8,62 +8,39 @@ var app = express();
 var config = require('./config');
 var firebase_admin = require('firebase-admin');
 var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-d25f46c201.json');
-
 firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(serviceAccount),
     databaseURL: 'https://alertnotification-a0fd6.firebaseio.com/'
 });
 
-app.set('dbHost', config.dbHost);
-app.set('dbDatabase', config.dbDatabase);
-app.set('dbUser', config.dbUser);
-app.set('dbPassword', config.dbPassword);
+app.use(cors({origin: '*'}));
 
 
-app.use(cors({
-    origin: '*'
+app.set('mysql_config', {
+    user:  config.dbUser,
+    password: config.dbPassword,
+    host: config.dbHost,
+    database: config.dbDatabase,
+});
 
-}));
-
-
-// app.all('/', function(req, res, next) {
-//     res.setHeader("Access-Control-Allow-Origin", "*");
-//     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
-// app.use(function(req, res, next) {
-//     res.setHeader("Access-Control-Allow-Origin", "*");
-//     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
-
-//
-// var mssql = require('mssql');
-// const mssql_config = {
-//     user: app.get('dbUser'),
-//     password: app.get('dbPassword'),
-//     server: app.get('dbHost'),
-//     database: app.get('dbDatabase'),
-//     // options: {
-//     //     encrypt: true // Use this if you're on Windows Azure
-//     // }
-// };
-
-const mysql_config = {
-    user: "root",
-    password: "root",
-    host: "127.0.0.1",
-    database: "alertnotification",
-};
+app.set('AD_config', {
+    url: config.ldapurl,
+    baseDN: config.ldapbaseDN,
+    username: config.username,
+    password: config.password
+});
+var ActiveDirectory = require('activedirectory2');
+var ad = new ActiveDirectory(app.get('AD_config'));
+app.set('AD', ad);
 
 // var mssql_connect = mssql.connect(mssql_config);
 
-var getUsersRouter = require('./routes/getusers')(app, config, firebase_admin, mysql_config);
-var indexRouter = require('./routes/index')(app, config, firebase_admin, mysql_config);
-var groups = require('./routes/groups')(app, config, firebase_admin, mysql_config);
-var incedents = require('./routes/incedent')(app, config, firebase_admin, mysql_config);
-var notification = require('./schedule/notification')(app, config, firebase_admin, mysql_config);
-var users = require('./routes/users')(app, config, firebase_admin, mysql_config);
+var getUsersRouter = require('./routes/getusers')(app, config, firebase_admin);
+var indexRouter = require('./routes/index')(app, config, firebase_admin);
+var groups = require('./routes/groups')(app, config, firebase_admin);
+var incedents = require('./routes/incedent')(app, config, firebase_admin);
+var notification = require('./schedule/notification')(app, config, firebase_admin);
+var users = require('./routes/users')(app, config, firebase_admin);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -75,7 +52,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/', indexRouter );
 app.use('/getusers', getUsersRouter );
 app.use('/groups', groups );
 app.use('/incedent', incedents );

@@ -1,6 +1,11 @@
 module.exports = {
-    'dbHost' : '10.1.100.33\\RECOGNIZE',
-    'dbDatabase' : 'AlertNotification',
-    'dbUser': 'tech',
-    'dbPassword': 'nrNNN333',
+    'dbHost' : '127.0.0.1',
+    'dbDatabase' : 'alertnotification',
+    'dbUser': 'root',
+    'dbPassword': 'root',
+
+    'ldapurl': 'ldap://elem-dc0.elem.ru',
+    'ldapbaseDN': 'dc=elem,dc=ru',
+    'username': 'gs2@elem.ru',
+    'password': 'gs2-1',
 };
