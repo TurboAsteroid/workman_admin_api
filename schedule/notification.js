@@ -12,15 +12,17 @@ module.exports = function(app, config, firebase_admin) {
         const connection = await mysql.createConnection(mysql_config);
         // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
 
-        const [user_rows, user_fields] = await connection.execute('select users.*, tokens.token from users left join tokens on tokens.user_id = users.id where id = ?', [user_id]);
+        const [user_rows, user_fields] = await connection.execute('select users.*, tokens.token from users left join tokens on tokens.user_id = users.id where users.id = ?', [user_id]);
         const [incedent_rows, incedent_fields] = await connection.execute('select * from incedent where id = ?', [incedent_id]);
         const [rows, fields] = await connection.execute('insert into notification (incedentGroup_id, row_id, user_id) values (?,?,?)', [incedentGroup_id, row_id, user_id]);
         var payload = {
-            notification: {
-                title: incedent_rows[0].title,
-                body: incedent_rows[0].description
-            },
+            // notification: {
+            //     title: incedent_rows[0].title,
+            //     body: incedent_rows[0].description
+            // },
             data: {
+                title: incedent_rows[0].title,
+                body: incedent_rows[0].description,
                 incedent_id: incedent_id.toString(),
                 incedentGroup_id: incedentGroup_id.toString(),
                 group_id: group_id.toString(),
@@ -36,8 +38,6 @@ module.exports = function(app, config, firebase_admin) {
         for (let i in user_rows) {
             let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
         }
-
-        console.log("result notifications", result);
     }
 
     async function getNotificationList() {
@@ -69,11 +69,8 @@ module.exports = function(app, config, firebase_admin) {
             for (let j in rows) {
                 await createNotification(rows2[i].id, rows[j].row_id, rows[j].user_id, rows2[i].group_id, rows2[i].incedent_id);
             }
-            console.warn(111);
             let [upd_rows, upd_fields] = await connection.execute('update incedentGroups SET current_row = ? ,time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [current_row, rows2[i].id, rows2[i].group_id, rows2[i].current_row ]);
         }
-
-        //
 
         return await connection.end();
     }
