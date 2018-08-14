@@ -1,5 +1,5 @@
 module.exports = {
-    'dbHost' : '127.0.0.1',
+    'dbHost' : '10.1.100.33',
     'dbDatabase' : 'alertnotification',
     'dbUser': 'root',
     'dbPassword': 'root',
