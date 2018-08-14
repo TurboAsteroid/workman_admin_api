@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "install_all": "npm i && cd public && npm i && cd ../"
   },
   "dependencies": {
     "activedirectory": "^0.7.2",
