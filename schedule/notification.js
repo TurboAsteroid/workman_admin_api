@@ -1,12 +1,8 @@
 module.exports = function(app, config, firebase_admin) {
     const schedule = require('node-schedule');
     const mysql = require('mysql2/promise');
-    const mysql_config = {
-        user: "root",
-        password: "root",
-        host: "127.0.0.1",
-        database: "alertnotification",
-    };
+
+    const mysql_config = app.get('mysql_config');
 
     async function createNotification (incedentGroup_id, row_id, user_id, group_id, incedent_id) {
         const connection = await mysql.createConnection(mysql_config);

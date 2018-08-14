@@ -41,6 +41,7 @@ var groups = require('./routes/groups')(app, config, firebase_admin);
 var incedents = require('./routes/incedent')(app, config, firebase_admin);
 var notification = require('./schedule/notification')(app, config, firebase_admin);
 var users = require('./routes/users')(app, config, firebase_admin);
+var tags = require('./routes/tags')(app);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -57,6 +58,7 @@ app.use('/getusers', getUsersRouter );
 app.use('/groups', groups );
 app.use('/incedent', incedents );
 app.use('/users', users );
+app.use('/tags', tags );
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
