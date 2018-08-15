@@ -30,6 +30,8 @@ module.exports = function(app, config, firebase_admin) {
                                 await connection.execute('insert into tokens (token, user_id) values (?, ?)', [req.body.token, rows.insertId]);
 
                                 res.json({status: 1, userid: rows.insertId, name: user.displayName});
+
+                                connection.close();
                             };
                             newuser();
                         }
@@ -42,14 +44,16 @@ module.exports = function(app, config, firebase_admin) {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [url.parse(req.url, true).query.token]);
             if (rows.length > 0 && rows[0] && rows[0].id) {
-                const [rows1, fields1] = await connection.execute('select notification.id, incedent.title, incedent.description from notification ' +
+                const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incedent.title, incedent.description from notification ' +
                     'left join incedentgroups on notification.incedentGroup_id = incedentgroups.id ' +
                     'left join incedent on incedent.id = incedentgroups.incedent_id ' +
-                    'where user_id = ? and notification.complete = 0', [rows[0].id]);
+                    'where user_id = ? order by notification.complete', [rows[0].id]);
+                console.warn({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
                 res.json({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
             } else {
                 res.json({status: 0, userid: 0, name: '', notification: []});
             }
+            connection.close();
         };
         getusers();
     });

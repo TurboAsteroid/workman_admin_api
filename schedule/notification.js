@@ -40,13 +40,13 @@ module.exports = function(app, config, firebase_admin) {
         const connection = await mysql.createConnection(mysql_config);
         // Новые уведомления / первой линии
         const [rows1, fields1] = await connection.execute('select * from incedentGroups where complete = 0 AND (time_sent IS NULL)', []);
-        console.log("rows1", rows1);
+        // console.log("rows1", rows1);
         for (let i in rows1) {
             let [rows, fields] = await connection.execute('select * from GroupRows left join GroupRowUsers on GroupRowUsers.row_id = GroupRows.id left join users on GroupRowUsers.user_id = users.id where GroupRows.group_id = ? and row_number = ?', [ rows1[i].group_id, rows1[i].current_row ]);
             for (let j in rows) {
                 await createNotification(rows1[i].id, rows[j].row_id, rows[j].user_id, rows1[i].group_id, rows1[i].incedent_id);
             }
-            console.log("rows1[i].incedentGroup_id, rows1[i].group_id, rows1[i].current_row", rows1[i].id, rows1[i].group_id, rows1[i].current_row);
+            // console.log("rows1[i].incedentGroup_id, rows1[i].group_id, rows1[i].current_row", rows1[i].id, rows1[i].group_id, rows1[i].current_row);
             let [upd_rows, upd_fields] = await connection.execute('update incedentGroups  SET time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [rows1[i].id, rows1[i].group_id, rows1[i].current_row ]);
         }
 
@@ -58,7 +58,7 @@ module.exports = function(app, config, firebase_admin) {
             'left join (select group_id, max(row_number) as max_row from grouprows group by group_id) as group_max_row ' +
             'on group_max_row.group_id = incedentgroups.group_id ' +
             'where complete = 0 and TIMESTAMPDIFF(MINUTE, time_sent, NOW()) >= grouprows.delay and group_max_row.max_row > grouprows.row_number', []);
-        console.log("rows2", rows2);
+        // console.log("rows2", rows2);
         for (let i in rows2) {
             let current_row = rows2[i].current_row + 1;
             let [rows, fields] = await connection.execute('select * from GroupRows left join GroupRowUsers on GroupRowUsers.row_id = GroupRows.id left join users on GroupRowUsers.user_id = users.id where GroupRows.group_id = ? and row_number = ?', [ rows2[i].group_id,  current_row]);
