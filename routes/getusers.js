@@ -12,6 +12,7 @@ module.exports = function(app, config, firebase_admin) {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select name as text, id as value from Users', []);
             res.json(rows);
+            connection.close();
         };
         getusers();
     });

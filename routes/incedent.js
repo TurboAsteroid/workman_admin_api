@@ -9,11 +9,14 @@ module.exports = function(app, config, firebase_admin) {
 
         // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
         // console.log("max_row", rows);
-        return await connection.execute('insert into incedentGroups (incedent_id, group_id) values (?,?)', [incedent_id, group_id]);
+
+        await connection.execute('insert into incedentGroups (incedent_id, group_id) values (?,?)', [incedent_id, group_id]);
+        connection.close();
     }
     async function showNewIncedent (res) {
         const connection = await mysql.createConnection(mysql_config);
         const [rows2, fields2] = await connection.execute('select * from Groups', []);
+        connection.close();
         // res.render('incedent/new', {
         //     title: 'Новый инцедент',
         //     groups: rows2
@@ -24,6 +27,19 @@ module.exports = function(app, config, firebase_admin) {
     var router = express.Router();
     router.get('/new', function (req, res, next) {
         showNewIncedent(res);
+    });
+    router.post('/checknotification', function (req, res, next) {
+        console.log(req.body);
+        let result = async function () {
+            const connection = await mysql.createConnection(mysql_config);
+            await connection.execute('update notification SET complete = 1, timecheck = NOW() where id = ?', [req.body.notification_id]);
+            const [notR, notF] = await connection.execute('select incedentgroups.id as incedentgroup_id from notification left join incedentgroups on incedentgroups.id = notification.incedentGroup_id where notification.id = ?', [req.body.notification_id]);
+            await connection.execute('update incedentgroups SET complete = 1 where id = ?', [notR[0].incedentgroup_id]);
+
+            res.json({status: '1'});
+            connection.close();
+        };
+        result();
     });
     router.get('/getall', function (req, res, next) {
         let result = async function () {
@@ -86,6 +102,7 @@ module.exports = function(app, config, firebase_admin) {
 
             // console.log(rows);
             res.json(result_array);
+            connection.close();
         };
         result();
     });
@@ -109,6 +126,7 @@ module.exports = function(app, config, firebase_admin) {
 
 
             showNewIncedent(res);
+            connection.close();
         };
         result();
     });

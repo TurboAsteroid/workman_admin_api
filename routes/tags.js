@@ -39,6 +39,8 @@ module.exports = function(app) {
                 });
         }
         res.json({ tags: rows1, tagsSelected: json});
+
+        connection.close();
     });
 
     return router;

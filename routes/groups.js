@@ -50,6 +50,7 @@ module.exports = function(app, config, firebase_admin) {
             }
 
             res.json(result_array);
+            connection.close();
         };
         result();
     });
@@ -76,6 +77,7 @@ module.exports = function(app, config, firebase_admin) {
                 }
             }
             res.sendStatus(200);
+            connection.close();
         };
         result();
     });
@@ -110,6 +112,7 @@ module.exports = function(app, config, firebase_admin) {
             const [rows5, fields5] = await connection.execute('insert into GroupRowUsers (user_id, row_id) values ' + values2, []);
 
             res.json({ok: 1});
+            connection.close();
 
         };
         result();
