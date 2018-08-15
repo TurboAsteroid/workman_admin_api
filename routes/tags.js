@@ -1,6 +1,6 @@
 module.exports = function(app) {
-    var express = require('express');
-    var router = express.Router();
+    let express = require('express');
+    let router = express.Router();
 
     const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
@@ -18,20 +18,25 @@ module.exports = function(app) {
                 join groups on groups.id = tags_groups.id_groups
             `
         );
-        let json = new Array(tagsSelected.length);
-        for (var i = 0; i < tagsSelected.length; i++) {
-            for (var j = 0; j < rows2.length; j++) {
+        let json_tmp = [];
+        let json = [];
+        for (let i in tagsSelected) {
+            for (let j in rows2) {
                 if(rows2[j].value_gr === tagsSelected[i].id) {
-                    if (json[i] === undefined) {
-                        json[i] = [rows2[j]]
+                    if (json_tmp[i] === undefined) {
+                        json_tmp[i] = [rows2[j]]
                     } else {
-                        json[i].push(rows2[j])
+                        json_tmp[i].push(rows2[j])
                     }
                 }
             }
         }
-        for (var i = 0; i < json.length; i++) {
-            json[i] = { id: json[i][0].value_gr, data: json[i] }
+        for (let i in json_tmp) {
+            json.push(
+                {
+                    id: json[i][0].value_gr,
+                    data: json[i]
+                });
         }
         res.json({ tags: rows1, tagsSelected: json});
     });
