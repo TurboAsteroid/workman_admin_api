@@ -54,10 +54,11 @@ module.exports = function(app, config, firebase_admin) {
         result();
     });
     router.post('/saveall', function (req, res, next) {
-        let data = req.body.data;
+        let data = req.body;
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
-            await connection.execute('delete from Groups ', []);
+            await connection.execute('delete from tags_groups', []);
+            await connection.execute('delete from Groups', []);
             await connection.execute('delete from grouprows ', []);
             await connection.execute('delete from grouprowusers ', []);
             for (let i in req.body) {
@@ -67,7 +68,9 @@ module.exports = function(app, config, firebase_admin) {
                     let row = group.data[j];
                     const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into GroupRows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
                     let ins_id = GroupRows_res.insertId;
+
                     for (let l in row.users) {
+                        console.log(row.users[l].value );
                         await connection.execute('insert into GroupRowUsers (user_id, row_id) values (?,?)', [row.users[l].value, ins_id]);
                     }
                 }

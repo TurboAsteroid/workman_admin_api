@@ -1,6 +1,6 @@
 module.exports = function(app, config, firebase_admin) {
-    var express = require('express');
-    var router = express.Router();
+    let express = require('express');
+    let router = express.Router();
 
     const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
