@@ -29,7 +29,7 @@ module.exports = function(app, config, firebase_admin) {
         showNewIncedent(res);
     });
     router.post('/checknotification', function (req, res, next) {
-        console.log(req.body);
+        // console.log(req.body);
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
             await connection.execute('update notification SET complete = 1, timecheck = NOW() where id = ?', [req.body.notification_id]);
@@ -108,7 +108,7 @@ module.exports = function(app, config, firebase_admin) {
     });
 
     router.post('/new', function (req, res, next) {
-        console.log('req.body', req.body);
+        // console.log('req.body', req.body);
         let result = async function () {
 
             const connection = await mysql.createConnection(mysql_config);

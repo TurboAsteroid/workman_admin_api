@@ -47,8 +47,8 @@ module.exports = function(app, config, firebase_admin) {
                 const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incedent.title, incedent.description from notification ' +
                     'left join incedentgroups on notification.incedentGroup_id = incedentgroups.id ' +
                     'left join incedent on incedent.id = incedentgroups.incedent_id ' +
-                    'where user_id = ? order by notification.complete', [rows[0].id]);
-                console.warn({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
+                    'where user_id = ? and (notification.complete = 0 or TIMESTAMPDIFF(HOUR, notification.timesent, NOW()) <= 72) order by notification.complete, incedent.datetime desc', [rows[0].id]);
+                // console.warn({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
                 res.json({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
             } else {
                 res.json({status: 0, userid: 0, name: '', notification: []});

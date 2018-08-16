@@ -71,8 +71,16 @@ module.exports = function(app, config, firebase_admin) {
                     let ins_id = GroupRows_res.insertId;
 
                     for (let l in row.users) {
-                        console.log(row.users[l].value );
-                        await connection.execute('insert into GroupRowUsers (user_id, row_id) values (?,?)', [row.users[l].value, ins_id]);
+                        let user_id;
+                        if (row.users[l] && row.users[l].value) {
+                            user_id = row.users[l].value;
+                        } else if (Number.isInteger(row.users[l])) {
+                            user_id = parseInt(row.users[l]);
+                        } else {
+                            continue;
+                        }
+                        // console.log(row.users[l].value );
+                        await connection.execute('insert into GroupRowUsers (user_id, row_id) values (?,?)', [user_id, ins_id]);
                     }
                 }
             }
