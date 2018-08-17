@@ -38,6 +38,8 @@ module.exports = function(app, cfg, router) {
                 console.log(500);
                 res.status(403).send(err.message)
             }
+        } else {
+            res.status(403).send('Access denied')
         }
     });
 

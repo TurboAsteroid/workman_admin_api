@@ -39,18 +39,12 @@ app.set('AD', ad);
 var notification = require('./schedule/notification')(app, config, firebase_admin);
 
 let router = express.Router();
-var auth = require('./routes/auth')(app, config, router);
-var getUsersRouter = require('./routes/getusers')(app, config, firebase_admin, router);
-var groups = require('./routes/groups')(app, config, firebase_admin, router);
-var incedents = require('./routes/incedent')(app, config, firebase_admin, router);
-var users = require('./routes/users')(app, config, firebase_admin, router);
-var tags = require('./routes/tags')(app, config, router);
-router.use(auth);
-router.use(getUsersRouter);
-router.use(groups);
-router.use(incedents);
-router.use(users);
-router.use(tags);
+require('./routes/auth')(app, config, router);
+require('./routes/getusers')(app, config, firebase_admin, router);
+require('./routes/groups')(app, config, firebase_admin, router);
+require('./routes/incedent')(app, config, firebase_admin, router);
+require('./routes/users')(app, config, firebase_admin, router);
+require('./routes/tags')(app, config, router);
 
 app.use(router);
 
