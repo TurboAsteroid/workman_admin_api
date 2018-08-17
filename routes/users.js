@@ -1,13 +1,13 @@
-module.exports = function(app, config, firebase_admin) {
-    var express = require('express');
-    var router = express.Router();
+module.exports = function(app, config, firebase_admin, router) {
+    // var express = require('express');
+    // var router = express.Router();
     const url = require('url');
 
     const mysql_config = app.get('mysql_config');
 
     const mysql = require('mysql2/promise');
 
-    router.post('/new', function (req, res, next) {
+    router.post('/users/new', function (req, res, next) {
 
             let ad = app.get('AD');
 
@@ -39,7 +39,7 @@ module.exports = function(app, config, firebase_admin) {
                 }
             });
     });
-    router.get('/getbytoken', function (req, res, next) {
+    router.get('/users/getbytoken', function (req, res, next) {
         let getusers = async function () {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [url.parse(req.url, true).query.token]);

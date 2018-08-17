@@ -1,6 +1,6 @@
-module.exports = function(app, config) {
-    let express = require('express');
-    let router = express.Router();
+module.exports = function(app, config, router) {
+    // let express = require('express');
+    // let router = express.Router();
 
     const mysql_config = {
         user:  config.dbUser,
@@ -10,7 +10,7 @@ module.exports = function(app, config) {
     };
     const mysql = require('mysql2/promise');
 
-    router.get('/get', async function (req, res, next) {
+    router.get('/tags/get', async function (req, res, next) {
         const connection = await mysql.createConnection(mysql_config);
         const [rows0, fields0] = await connection.execute(`select id from groups`);
         const tagsSelected = rows0;

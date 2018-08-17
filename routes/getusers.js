@@ -1,13 +1,9 @@
-module.exports = function(app, config, firebase_admin) {
-    let express = require('express');
-    let router = express.Router();
-
+module.exports = function(app, config, firebase_admin, router) {
     const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
 
-
     /* GET home page. */
-    router.get('/', function (req, res, next) {
+    router.get('/getusers', function (req, res, next) {
         let getusers = async function () {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select name as text, id as value from Users', []);
