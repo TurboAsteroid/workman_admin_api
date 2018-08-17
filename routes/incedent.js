@@ -41,6 +41,26 @@ module.exports = function(app, config, firebase_admin, router) {
         };
         result();
     });
+    router.get('/getbynotification', function (req, res, next) {
+        let result = async function () {
+            let notification_id = url.parse(req.url, true).query.notification_id;
+
+            const connection = await mysql.createConnection(mysql_config);
+            const [incR, incF] = await connection.execute('select incedent.*, DATE_FORMAT(incedent.datetime, "%H:%i:%S %d-%m-%Y") as time from notification ' +
+                'left join incedentgroups on incedentgroups.id = notification.incedentGroup_id ' +
+                'left join incedent on incedent.id = incedentgroups.incedent_id ' +
+                'where notification.id = ?', [notification_id]);
+            res.json({
+                title: incR[0].title,
+                description: incR[0].description,
+                datetime: incR[0].time,
+                solution: "Здесь будут описаны возможные способы решения проблемы, а также необходимые контактные данные."
+            });
+            connection.close();
+        };
+        result();
+
+    });
     router.get('/incedent/getall', function (req, res, next) {
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
