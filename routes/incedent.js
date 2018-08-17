@@ -1,5 +1,5 @@
-module.exports = function(app, config, firebase_admin) {
-    var express = require('express');
+module.exports = function(app, config, firebase_admin, router) {
+    // var express = require('express');
     // var uniqid = require('uniqid');
     const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
@@ -24,11 +24,11 @@ module.exports = function(app, config, firebase_admin) {
         res.json({status: "ok"});
     }
 
-    var router = express.Router();
-    router.get('/new', function (req, res, next) {
+    // var router = express.Router();
+    router.get('/incedent/new', function (req, res, next) {
         showNewIncedent(res);
     });
-    router.post('/checknotification', function (req, res, next) {
+    router.post('/incedent/checknotification', function (req, res, next) {
         // console.log(req.body);
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
@@ -41,7 +41,7 @@ module.exports = function(app, config, firebase_admin) {
         };
         result();
     });
-    router.get('/getall', function (req, res, next) {
+    router.get('/incedent/getall', function (req, res, next) {
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select incedent.*, incedentgroups.group_id, incedentgroups.complete, incedentgroups.time_sent, groups.name ' +
@@ -107,7 +107,7 @@ module.exports = function(app, config, firebase_admin) {
         result();
     });
 
-    router.post('/new', function (req, res, next) {
+    router.post('/incedent/new', function (req, res, next) {
         // console.log('req.body', req.body);
         let result = async function () {
 

@@ -1,12 +1,12 @@
-module.exports = function(app, config, firebase_admin) {
-    var express = require('express');
-    var router = express.Router();
+module.exports = function(app, config, firebase_admin, router) {
+    // var express = require('express');
+    // var router = express.Router();
 
     const mysql = require('mysql2/promise');
     const mysql_config = app.get('mysql_config');
 
     /* */
-    router.get('/get', function (req, res, next) {
+    router.get('/groups/get', function (req, res, next) {
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
             const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
@@ -54,7 +54,7 @@ module.exports = function(app, config, firebase_admin) {
         };
         result();
     });
-    router.post('/saveall', function (req, res, next) {
+    router.post('/groups/saveall', function (req, res, next) {
         let data = req.body;
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
@@ -89,7 +89,7 @@ module.exports = function(app, config, firebase_admin) {
         };
         result();
     });
-    router.post('/save', function (req, res, next) {
+    router.post('/groups/save', function (req, res, next) {
         let data = JSON.parse(req.body.data);
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
@@ -127,7 +127,7 @@ module.exports = function(app, config, firebase_admin) {
     });
 
     /*  */
-    router.get('/new', function (req, res, next) {
+    router.get('/groups/new', function (req, res, next) {
         res.render('groups/new', {title: 'Новая группа'});
     });
 
