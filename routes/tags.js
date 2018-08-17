@@ -1,8 +1,13 @@
-module.exports = function(app) {
+module.exports = function(app, config) {
     let express = require('express');
     let router = express.Router();
 
-    const mysql_config = app.get('mysql_config');
+    const mysql_config = {
+        user:  config.dbUser,
+        password: config.dbPassword,
+        host: config.dbHost,
+        database: config.dbDatabase,
+    };
     const mysql = require('mysql2/promise');
 
     router.get('/get', async function (req, res, next) {
