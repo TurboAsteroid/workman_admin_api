@@ -36,16 +36,17 @@ app.set('AD', ad);
 // var mssql_connect = mssql.connect(mssql_config);
 
 var getUsersRouter = require('./routes/getusers')(app, config, firebase_admin);
-var indexRouter = require('./routes/index')(app, config, firebase_admin);
+// var indexRouter = require('./routes/index')(app, config, firebase_admin);
 var groups = require('./routes/groups')(app, config, firebase_admin);
 var incedents = require('./routes/incedent')(app, config, firebase_admin);
 var notification = require('./schedule/notification')(app, config, firebase_admin);
 var users = require('./routes/users')(app, config, firebase_admin);
-var tags = require('./routes/tags')(app);
+var tags = require('./routes/tags')(app, config);
+var auth = require('./routes/auth')(app, config);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -53,12 +54,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter );
+// app.use('/', indexRouter );
 app.use('/getusers', getUsersRouter );
 app.use('/groups', groups );
 app.use('/incedent', incedents );
 app.use('/users', users );
 app.use('/tags', tags );
+app.use('/auth', auth );
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
