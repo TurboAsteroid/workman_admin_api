@@ -7,12 +7,15 @@ module.exports = function(app, config, firebase_admin, router) {
 
     /* */
     router.get('/groups/get', function (req, res, next) {
+
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
+            const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id', []);
+            console.log(grR);
             const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
                 'left join grouprows on groups.id = grouprows.group_id ' +
                 'left join grouprowusers on grouprows.id = grouprowusers.row_id ' +
-                'left join users on users.id = grouprowusers.user_id', []);
+                'left join users on users.id = grouprowusers.user_id ', []);
 
             let tmp_result = {};
             for (let i in rows1) {
@@ -22,6 +25,7 @@ module.exports = function(app, config, firebase_admin, router) {
                         value: rows1[i].group_id,
                         name: rows1[i].name,
                         text: rows1[i].name,
+                        tags: [],
                         data_t: {}
                     };
                 }
@@ -37,6 +41,7 @@ module.exports = function(app, config, firebase_admin, router) {
                 } else {
                     tmp_result[rows1[i].group_id].data_t[rows1[i].row_number].users.push({value: rows1[i].user_id, text: rows1[i].user_name});
                 }
+
             }
             let result_array = [];
             for (let i in tmp_result) {
@@ -46,6 +51,12 @@ module.exports = function(app, config, firebase_admin, router) {
                     tmp.data.push(tmp_result[i].data_t[j]);
                 }
                 delete tmp.data_t;
+                for (let j in grR) {
+                    if (tmp_result[i].group_id == grR[j].group_id) {
+                        tmp_result[rows1[i].group_id].tags.push({value: grR[j].id, text: grR[j].text});
+                    }
+                }
+
                 result_array.push(tmp);
             }
 
@@ -124,11 +135,6 @@ module.exports = function(app, config, firebase_admin, router) {
 
         };
         result();
-    });
-
-    /*  */
-    router.get('/groups/new', function (req, res, next) {
-        res.render('groups/new', {title: 'Новая группа'});
     });
 
     return router;
