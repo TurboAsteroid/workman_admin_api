@@ -90,9 +90,12 @@ module.exports = function(app, config, firebase_admin, router) {
                         } else {
                             continue;
                         }
-                        // console.log(row.users[l].value );
                         await connection.execute('insert into GroupRowUsers (user_id, row_id) values (?,?)', [user_id, ins_id]);
                     }
+                }
+                await connection.execute('delete from tags_groups where id_groups = ?', [group.id]);
+                for (let j in group.tags) {
+                    await connection.execute('insert into tags_groups (id_tags, id_groups) values (?,?)', [group.tags[j].value, group.id]);
                 }
             }
             res.sendStatus(200);
