@@ -39,7 +39,7 @@ app.set('AD', ad);
 var notification = require('./schedule/notification')(app, config, firebase_admin);
 
 let router = express.Router();
-require('./routes/auth')(app, config, router);
+// require('./routes/auth')(app, config, router);
 require('./routes/getusers')(app, config, firebase_admin, router);
 require('./routes/groups')(app, config, firebase_admin, router);
 require('./routes/incedent')(app, config, firebase_admin, router);
