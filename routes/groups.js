@@ -50,7 +50,8 @@ module.exports = function(app, config, firebase_admin, router) {
                 }
                 delete tmp.data_t;
                 for (let j in grR) {
-                    if (tmp_result[i].group_id == grR[j].group_id) {
+                    console.log(i, j, tmp_result[i].group_id, grR[j].group_id);
+                    if (tmp_result[i].group_id === grR[j].group_id) {
                         tmp_result[rows1[i].group_id].tags.push({value: grR[j].id, text: grR[j].text});
                     }
                 }
