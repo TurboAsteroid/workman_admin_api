@@ -26,8 +26,16 @@ module.exports = function(app, config, firebase_admin, router) {
                         else {
                             let newuser = async function () {
                                 const connection = await mysql.createConnection(mysql_config);
-                                const [rows, fields] = await connection.execute('INSERT IGNORE into users (name, login) values (?, ?)', [user.displayName, req.body.login]);
-                                await connection.execute('insert into tokens (token, user_id) values (?, ?)', [req.body.token, rows.insertId]);
+                                const [rows, fields] = await connection.execute('select * from users where login = ?', [req.body.login]);
+                                let user_id;
+                                if (rows.length) {
+                                    user_id = rows[0].id;
+                                } else {
+                                    const [newuserR, newuserF] = await connection.execute('INSERT into users (name, login) values (?, ?)', [user.displayName, req.body.login]);
+                                    user_id = newuserR.insertId;
+                                }
+
+                                await connection.execute('insert into tokens (token, user_id) values (?, ?)', [req.body.token, user_id]);
 
                                 res.json({status: 1, userid: rows.insertId, name: user.displayName});
 
