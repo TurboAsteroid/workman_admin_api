@@ -3,6 +3,7 @@ module.exports = function(app, config, firebase_admin, router) {
     // var uniqid = require('uniqid');
     const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
+    const url = require('url');
 
     async function addIncedent (group_id, incedent_id) {
         const connection = await mysql.createConnection(mysql_config);
@@ -21,7 +22,7 @@ module.exports = function(app, config, firebase_admin, router) {
         //     title: 'Новый инцедент',
         //     groups: rows2
         // });
-        res.json({status: "ok"});
+        res.status(200).json({status: "ok"});
     }
 
     // var router = express.Router();
@@ -41,7 +42,7 @@ module.exports = function(app, config, firebase_admin, router) {
         };
         result();
     });
-    router.get('/getbynotification', function (req, res, next) {
+    router.get('/incedent/getbynotification', function (req, res, next) {
         let result = async function () {
             let notification_id = url.parse(req.url, true).query.notification_id;
 
@@ -128,22 +129,16 @@ module.exports = function(app, config, firebase_admin, router) {
     });
 
     router.post('/incedent/new', function (req, res, next) {
-        // console.log('req.body', req.body);
+        console.log('req.body', req.body);
         let result = async function () {
 
             const connection = await mysql.createConnection(mysql_config);
             // const [rows2, fields2] = await connection.execute('select * from Groups where id in ('+req.body.groups.join(',')+')', []);
             const [rows2, fields2] = await connection.execute('insert into incedent (title, description) values (?,?)', [req.body.title, req.body.description]);
 
-
-            if (Array.isArray(req.body.groups)) {
-                for(let i in req.body.groups) {
-                    addIncedent(req.body.groups[i], rows2.insertId);
-                }
-            } else {
-                addIncedent(req.body.groups, rows2.insertId);
+            for(let i in req.body.groups) {
+                addIncedent(req.body.groups[i], rows2.insertId);
             }
-
 
             showNewIncedent(res);
             connection.close();

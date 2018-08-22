@@ -1,6 +1,13 @@
+const url = require('url');
 module.exports = function(app, cfg, router) {
     router.all('*', function (req, res, next) {
-        if (req.originalUrl === '/auth/login') {
+        if (
+            req.originalUrl === '/auth/login' ||
+            url.parse(req.url, true).pathname === '/users/getbytoken' ||
+            url.parse(req.url, true).pathname === '/users/new' ||
+            url.parse(req.url, true).pathname === '/incedent/checknotification' ||
+            url.parse(req.url, true).pathname === '/incedent/getbynotification'
+        ) {
             next()
         } else if(req.headers.authorization !== undefined && req.headers.authorization !== null) {
             const token = req.headers.authorization.replace(/Bearer /g,"");

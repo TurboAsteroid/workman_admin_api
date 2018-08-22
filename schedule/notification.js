@@ -32,7 +32,9 @@ module.exports = function(app, config, firebase_admin) {
         };
         console.log("payload", payload);
         for (let i in user_rows) {
-            let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
+            if (user_rows[i].token) {
+                let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
+            }
         }
     }
 
