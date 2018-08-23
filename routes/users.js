@@ -52,10 +52,10 @@ module.exports = function(app, config, firebase_admin, router) {
             const connection = await mysql.createConnection(mysql_config);
             const [rows, fields] = await connection.execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [url.parse(req.url, true).query.token]);
             if (rows.length > 0 && rows[0] && rows[0].id) {
-                const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incedent.title, incedent.description from notification ' +
-                    'left join incedentgroups on notification.incedentGroup_id = incedentgroups.id ' +
-                    'left join incedent on incedent.id = incedentgroups.incedent_id ' +
-                    'where user_id = ? and (notification.complete = 0 or TIMESTAMPDIFF(HOUR, notification.timesent, NOW()) <= 72) order by notification.complete, incedent.datetime desc', [rows[0].id]);
+                const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incident.title, incident.description from notification ' +
+                    'left join incidentgroups on notification.incidentGroup_id = incidentgroups.id ' +
+                    'left join incident on incident.id = incidentgroups.incident_id ' +
+                    'where user_id = ? and (notification.complete = 0 or TIMESTAMPDIFF(HOUR, notification.timesent, NOW()) <= 72) order by notification.complete, incident.datetime desc', [rows[0].id]);
                 // console.warn({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
                 res.json({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
             } else {

@@ -5,8 +5,8 @@ module.exports = function(app, cfg, router) {
             req.originalUrl === '/auth/login' ||
             url.parse(req.url, true).pathname === '/users/getbytoken' ||
             url.parse(req.url, true).pathname === '/users/new' ||
-            url.parse(req.url, true).pathname === '/incedent/checknotification' ||
-            url.parse(req.url, true).pathname === '/incedent/getbynotification'
+            url.parse(req.url, true).pathname === '/incident/checknotification' ||
+            url.parse(req.url, true).pathname === '/incident/getbynotification'
         ) {
             next()
         } else if(req.headers.authorization !== undefined && req.headers.authorization !== null) {
