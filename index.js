@@ -7,6 +7,8 @@
 let app = require('./app');
 let debug = require('debug')('alertnotification:server');
 let http = require('http');
+let https = require('https');
+let fs = require('fs');
 
 /**
  * Get port from environment and store in Express.
@@ -19,7 +21,12 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-let server = http.createServer(app);
+let server = https.createServer({
+    key: fs.readFileSync('cert/server.key'),
+    cert: fs.readFileSync('cert/server.pem')
+}, app).listen(port);
+
+//let server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
