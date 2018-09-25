@@ -8,6 +8,8 @@ var app = express();
 var config = require('./config');
 var firebase_admin = require('firebase-admin');
 var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-d25f46c201.json');
+
+
 firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(serviceAccount),
     databaseURL: 'https://alertnotification-a0fd6.firebaseio.com/'
@@ -42,7 +44,7 @@ let router = express.Router();
 require('./routes/auth')(app, config, router);
 require('./routes/getusers')(app, config, firebase_admin, router);
 require('./routes/groups')(app, config, firebase_admin, router);
-require('./routes/incedent')(app, config, firebase_admin, router);
+require('./routes/incident')(app, config, firebase_admin, router);
 require('./routes/users')(app, config, firebase_admin, router);
 require('./routes/tags')(app, config, router);
 
