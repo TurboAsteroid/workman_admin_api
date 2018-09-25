@@ -1,6 +1,7 @@
 module.exports = function(app, config, firebase_admin) {
     const schedule = require('node-schedule');
     const mysql = require('mysql2/promise');
+    const helper = require('routes/helper');
 
     const mysql_config = app.get('mysql_config');
 
