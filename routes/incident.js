@@ -12,7 +12,7 @@ module.exports = function(app, config, firebase_admin, router) {
         // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
         // console.log("max_row", rows);
 
-        await connection.execute('insert into incidentGroups (incident_id, group_id) values (?,?)', [incident_id, group_id]);
+        await connection.execute('insert into incidentgroups (incident_id, group_id) values (?,?)', [incident_id, group_id]);
         connection.close();
     }
     async function showNewincident (res) {
