@@ -1,8 +1,8 @@
 module.exports = {
-    'dbHost' : '10.1.100.33',
+    'dbHost' : 'localhost',
     'dbDatabase' : 'alertnotification',
-    'dbUser': 'root',
-    'dbPassword': 'root',
+    'dbUser': 'alnot',
+    'dbPassword': 'df734##12iiRR2==-',
 
     'ldapurl': 'ldap://elem-dc0.elem.ru',
     'ldapbaseDN': 'dc=elem,dc=ru',

@@ -8,7 +8,7 @@ module.exports = function(app, config, firebase_admin, router) {
 
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
-            const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id', []);
+            const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id where tags_groups.id_groups IS NOT NULL ', []);
             console.log(grR);
             const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
                 'left join grouprows on groups.id = grouprows.group_id ' +
@@ -50,9 +50,8 @@ module.exports = function(app, config, firebase_admin, router) {
                 }
                 delete tmp.data_t;
                 for (let j in grR) {
-                    console.log(i, j, tmp_result[i].group_id, grR[j].group_id);
-                    if (tmp_result[i].group_id === grR[j].group_id) {
-                        tmp_result[rows1[i].group_id].tags.push({value: grR[j].id, text: grR[j].text});
+                    if (tmp.value && tmp.value == grR[j].group_id) {
+                        tmp_result[tmp.value].tags.push({value: grR[j].id, text: grR[j].text});
                     }
                 }
 
@@ -77,6 +76,10 @@ module.exports = function(app, config, firebase_admin, router) {
                 await connection.execute('insert into Groups (id, name) values (?, ?)', [group.id, group.name]);
                 for (let j in group.data) {
                     let row = group.data[j];
+                    console.warn(row.users);
+                    if (!row.users.length) {
+                        break;
+                    }
                     const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into GroupRows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
                     let ins_id = GroupRows_res.insertId;
 

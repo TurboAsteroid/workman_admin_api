@@ -32,43 +32,48 @@ module.exports = function(app, config, firebase_admin) {
         };
         console.log("payload", payload);
         for (let i in user_rows) {
-            let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
+            if (user_rows[i].token) {
+                let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
+            }
         }
     }
 
     async function getNotificationList() {
         const connection = await mysql.createConnection(mysql_config);
         // Новые уведомления / первой линии
-        const [rows1, fields1] = await connection.execute('select * from incedentgroups where complete = 0 AND (time_sent IS NULL)', []);
+        const [rows1, fields1] = await connection.execute('select * from incidentgroups where complete = 0 AND (time_sent IS NULL)', []);
         // console.log("rows1", rows1);
         for (let i in rows1) {
             let [rows, fields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id where grouprows.group_id = ? and row_number = ?', [ rows1[i].group_id, rows1[i].current_row ]);
             for (let j in rows) {
-                await createNotification(rows1[i].id, rows[j].row_id, rows[j].user_id, rows1[i].group_id, rows1[i].incedent_id);
+                await createNotification(rows1[i].id, rows[j].row_id, rows[j].user_id, rows1[i].group_id, rows1[i].incident_id);
             }
-            // console.log("rows1[i].incedentGroup_id, rows1[i].group_id, rows1[i].current_row", rows1[i].id, rows1[i].group_id, rows1[i].current_row);
-            let [upd_rows, upd_fields] = await connection.execute('update incedentgroups  SET time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [rows1[i].id, rows1[i].group_id, rows1[i].current_row ]);
+            // console.log("rows1[i].incidentGroup_id, rows1[i].group_id, rows1[i].current_row", rows1[i].id, rows1[i].group_id, rows1[i].current_row);
+            let [upd_rows, upd_fields] = await connection.execute('update incidentgroups  SET time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [rows1[i].id, rows1[i].group_id, rows1[i].current_row ]);
         }
 
-        const [rows2, fields2] = await connection.execute('select incedentgroups.*, grouprows.row_number, grouprows.delay, group_max_row.max_row ' +
-            'from incedentgroups ' +
+        const [rows2, fields2] = await connection.execute('select incidentgroups.*, grouprows.row_number, grouprows.delay, group_max_row.max_row ' +
+            'from incidentgroups ' +
             'left join grouprows ' +
-            'on incedentgroups.group_id = grouprows.group_id ' +
-            'and grouprows.row_number = incedentgroups.current_row ' +
+            'on incidentgroups.group_id = grouprows.group_id ' +
+            'and grouprows.row_number = incidentgroups.current_row ' +
             'left join (select group_id, max(row_number) as max_row from grouprows group by group_id) as group_max_row ' +
-            'on group_max_row.group_id = incedentgroups.group_id ' +
-            'where complete = 0 and TIMESTAMPDIFF(MINUTE, time_sent, NOW()) >= grouprows.delay and group_max_row.max_row > grouprows.row_number', []);
+            'on group_max_row.group_id = incidentgroups.group_id ' +
+            // 'where complete = 0 and TIMESTAMPDIFF(MINUTE, time_sent, NOW()) >= grouprows.delay and group_max_row.max_row > grouprows.row_number', []);
+            'where complete = 0 and TIMESTAMPDIFF(MINUTE, time_sent, NOW()) >= grouprows.delay', []);
         // console.log("rows2", rows2);
         for (let i in rows2) {
-            let current_row = rows2[i].current_row + 1;
+            let current_row = (rows2[i].max_row == rows2[i].current_row ? 1 : (rows2[i].current_row + 1));
             let [rows, fields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id where grouprows.group_id = ? and row_number = ?', [ rows2[i].group_id,  current_row]);
             for (let j in rows) {
-                await createNotification(rows2[i].id, rows[j].row_id, rows[j].user_id, rows2[i].group_id, rows2[i].incedent_id);
+                await createNotification(rows2[i].id, rows[j].row_id, rows[j].user_id, rows2[i].group_id, rows2[i].incident_id);
             }
-            let [upd_rows, upd_fields] = await connection.execute('update incedentGroups SET current_row = ? ,time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [current_row, rows2[i].id, rows2[i].group_id, rows2[i].current_row ]);
+            let [upd_rows, upd_fields] = await connection.execute('update incidentGroups SET current_row = ? ,time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [current_row, rows2[i].id, rows2[i].group_id, rows2[i].current_row ]);
         }
 
-        return await connection.end();
+        app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
+
+        connection.close();
     }
 
     schedule.scheduleJob('0 * * * * *', function() {
