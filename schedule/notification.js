@@ -39,15 +39,15 @@ module.exports = function(app, config, firebase_admin) {
     async function getNotificationList() {
         const connection = await mysql.createConnection(mysql_config);
         // Новые уведомления / первой линии
-        const [rows1, fields1] = await connection.execute('select * from incedentGroups where complete = 0 AND (time_sent IS NULL)', []);
+        const [rows1, fields1] = await connection.execute('select * from incedentgroups where complete = 0 AND (time_sent IS NULL)', []);
         // console.log("rows1", rows1);
         for (let i in rows1) {
-            let [rows, fields] = await connection.execute('select * from GroupRows left join GroupRowUsers on GroupRowUsers.row_id = GroupRows.id left join users on GroupRowUsers.user_id = users.id where GroupRows.group_id = ? and row_number = ?', [ rows1[i].group_id, rows1[i].current_row ]);
+            let [rows, fields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id where grouprows.group_id = ? and row_number = ?', [ rows1[i].group_id, rows1[i].current_row ]);
             for (let j in rows) {
                 await createNotification(rows1[i].id, rows[j].row_id, rows[j].user_id, rows1[i].group_id, rows1[i].incedent_id);
             }
             // console.log("rows1[i].incedentGroup_id, rows1[i].group_id, rows1[i].current_row", rows1[i].id, rows1[i].group_id, rows1[i].current_row);
-            let [upd_rows, upd_fields] = await connection.execute('update incedentGroups  SET time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [rows1[i].id, rows1[i].group_id, rows1[i].current_row ]);
+            let [upd_rows, upd_fields] = await connection.execute('update incedentgroups  SET time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [rows1[i].id, rows1[i].group_id, rows1[i].current_row ]);
         }
 
         const [rows2, fields2] = await connection.execute('select incedentgroups.*, grouprows.row_number, grouprows.delay, group_max_row.max_row ' +
@@ -61,7 +61,7 @@ module.exports = function(app, config, firebase_admin) {
         // console.log("rows2", rows2);
         for (let i in rows2) {
             let current_row = rows2[i].current_row + 1;
-            let [rows, fields] = await connection.execute('select * from GroupRows left join GroupRowUsers on GroupRowUsers.row_id = GroupRows.id left join users on GroupRowUsers.user_id = users.id where GroupRows.group_id = ? and row_number = ?', [ rows2[i].group_id,  current_row]);
+            let [rows, fields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id where grouprows.group_id = ? and row_number = ?', [ rows2[i].group_id,  current_row]);
             for (let j in rows) {
                 await createNotification(rows2[i].id, rows[j].row_id, rows[j].user_id, rows2[i].group_id, rows2[i].incedent_id);
             }

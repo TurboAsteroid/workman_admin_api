@@ -89,7 +89,7 @@ module.exports = function(app, config, firebase_admin, router) {
                         } else {
                             continue;
                         }
-                        await connection.execute('insert into GroupRowUsers (user_id, row_id) values (?,?)', [user_id, ins_id]);
+                        await connection.execute('insert into grouprowusers (user_id, row_id) values (?,?)', [user_id, ins_id]);
                     }
                 }
                 await connection.execute('delete from tags_groups where id_groups = ?', [group.id]);
@@ -130,7 +130,7 @@ module.exports = function(app, config, firebase_admin, router) {
             }
             values2 = values2.substring(0, values2.length - 1);
             console.log(values2);
-            const [rows5, fields5] = await connection.execute('insert into GroupRowUsers (user_id, row_id) values ' + values2, []);
+            const [rows5, fields5] = await connection.execute('insert into grouprowusers (user_id, row_id) values ' + values2, []);
 
             res.json({ok: 1});
             connection.close();
