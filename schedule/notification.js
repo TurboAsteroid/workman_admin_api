@@ -74,7 +74,7 @@ module.exports = function(app, config, firebase_admin) {
 
         app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
 
-        return await connection.end();
+        connection.close();
     }
 
     schedule.scheduleJob('0 * * * * *', function() {
