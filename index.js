@@ -1,48 +1,49 @@
 #!/usr/bin/env node
-
-/**
- * Module dependencies.
- */
-
 let app = require('./app');
 let debug = require('debug')('alertnotification:server');
 let http = require('http');
 let https = require('https');
 let fs = require('fs');
 
-/**
- * Get port from environment and store in Express.
- */
+// let server = http.createServer(app);
 
-let port = normalizePort(process.env.PORT || '3002');
-app.set('port', port);
+// Starting both http & https servers
 
-/**
- * Create HTTP server.
- */
+var express = require('express');
+var app3003 = express();
+app3003.use((req, res, next) => {
+    res.removeHeader("X-Powered-By"); // чтобы не палить кто сервер
+    next();
+});
+app3003.use(express.static(__dirname+'/app3003_static', { dotfiles: 'allow' } ));
+const httpServer3003 = http.createServer(app3003);
+httpServer3003.listen(3003, () => {
+  console.log('HTTP Server running on port 3003');
+});
 
-// let server = https.createServer({
-//     key: fs.readFileSync('cert/server.key'),
-//     cert: fs.readFileSync('cert/server.pem')
-// }, app).listen(port);
+// Certificate
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/alert.elem.ru/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/alert.elem.ru/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/alert.elem.ru/chain.pem', 'utf8');
+const credentials = {
+  key: privateKey,
+  cert: certificate,
+  ca: ca
+};
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(3002, () => {
+  console.log('HTTPS Server running on port 3002');
+});
 
-let server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-let io = require('socket.io')(server);
-
-
+let io = require('socket.io')(httpsServer);
 let usersConnected = 0;
 io.on('connection', (socket) => {
-    console.log(new Date() + ' ::: user connected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
-    socket.on('disconnect', () => {
-        usersConnected--;
-        console.log(new Date() + ' ::: user disconnected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
-    });
+  usersConnected++
+  console.log(new Date() + ' ::: user connected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
+  socket.on('disconnect', () => {
+      usersConnected--;
+      console.log(new Date() + ' ::: user disconnected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
+  });
 });
 app.set('io', io);
 
