@@ -4,64 +4,60 @@ module.exports = function(app, config, firebase_admin, router) {
     const mysql_config = app.get('mysql_config');
 
     /* */
-    router.get('/groups/get', function (req, res, next) {
+    router.get('/groups/get', async function (req, res) {
+        const connection = await mysql.createConnection(mysql_config);
+        const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id where tags_groups.id_groups IS NOT NULL ', []);
+        console.log(grR);
+        const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
+            'left join grouprows on groups.id = grouprows.group_id ' +
+            'left join grouprowusers on grouprows.id = grouprowusers.row_id ' +
+            'left join users on users.id = grouprowusers.user_id ', []);
 
-        let result = async function () {
-            const connection = await mysql.createConnection(mysql_config);
-            const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id where tags_groups.id_groups IS NOT NULL ', []);
-            console.log(grR);
-            const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
-                'left join grouprows on groups.id = grouprows.group_id ' +
-                'left join grouprowusers on grouprows.id = grouprowusers.row_id ' +
-                'left join users on users.id = grouprowusers.user_id ', []);
-
-            let tmp_result = {};
-            for (let i in rows1) {
-                if (!tmp_result[rows1[i].group_id]) {
-                    tmp_result[rows1[i].group_id] = {
-                        id: rows1[i].group_id,
-                        value: rows1[i].group_id,
-                        name: rows1[i].name,
-                        text: rows1[i].name,
-                        tags: [],
-                        data_t: {}
-                    };
-                }
-                if (!tmp_result[rows1[i].group_id].data_t[rows1[i].row_number]) {
-                    tmp_result[rows1[i].group_id].data_t[rows1[i].row_number] = {
-                        row_number: rows1[i].row_number,
-                        delay: rows1[i].delay,
-                        users: [{
-                            value: rows1[i].user_id,
-                            text: rows1[i].user_name
-                        }]
-                    }
-                } else {
-                    tmp_result[rows1[i].group_id].data_t[rows1[i].row_number].users.push({value: rows1[i].user_id, text: rows1[i].user_name});
-                }
-
+        let tmp_result = {};
+        for (let i in rows1) {
+            if (!tmp_result[rows1[i].group_id]) {
+                tmp_result[rows1[i].group_id] = {
+                    id: rows1[i].group_id,
+                    value: rows1[i].group_id,
+                    name: rows1[i].name,
+                    text: rows1[i].name,
+                    tags: [],
+                    data_t: {}
+                };
             }
-            let result_array = [];
-            for (let i in tmp_result) {
-                let tmp = tmp_result[i];
-                tmp.data = [];
-                for (let j in tmp_result[i].data_t) {
-                    tmp.data.push(tmp_result[i].data_t[j]);
+            if (!tmp_result[rows1[i].group_id].data_t[rows1[i].row_number]) {
+                tmp_result[rows1[i].group_id].data_t[rows1[i].row_number] = {
+                    row_number: rows1[i].row_number,
+                    delay: rows1[i].delay,
+                    users: [{
+                        value: rows1[i].user_id,
+                        text: rows1[i].user_name
+                    }]
                 }
-                delete tmp.data_t;
-                for (let j in grR) {
-                    if (tmp.value && tmp.value == grR[j].group_id) {
-                        tmp_result[tmp.value].tags.push({value: grR[j].id, text: grR[j].text});
-                    }
-                }
-
-                result_array.push(tmp);
+            } else {
+                tmp_result[rows1[i].group_id].data_t[rows1[i].row_number].users.push({value: rows1[i].user_id, text: rows1[i].user_name});
             }
 
-            res.json(result_array);
-            connection.close();
-        };
-        result();
+        }
+        let result_array = [];
+        for (let i in tmp_result) {
+            let tmp = tmp_result[i];
+            tmp.data = [];
+            for (let j in tmp_result[i].data_t) {
+                tmp.data.push(tmp_result[i].data_t[j]);
+            }
+            delete tmp.data_t;
+            for (let j in grR) {
+                if (tmp.value && tmp.value == grR[j].group_id) {
+                    tmp_result[tmp.value].tags.push({value: grR[j].id, text: grR[j].text});
+                }
+            }
+
+            result_array.push(tmp);
+        }
+
+        res.json(result_array);
+        connection.close();
     });
     router.post('/groups/saveall', function (req, res, next) {
         let data = req.body;
