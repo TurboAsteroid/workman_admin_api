@@ -5,6 +5,9 @@ module.exports = function(app, config, firebase_admin, router) {
     const mysql = require('mysql2/promise');
     const url = require('url');
     const helper = require('./helper');
+    const crypto = require('crypto');
+    const fs = require('fs');
+    var formidable = require('formidable');
 
     async function addincident (group_id, incident_id) {
         const connection = await mysql.createConnection(mysql_config);
@@ -14,16 +17,6 @@ module.exports = function(app, config, firebase_admin, router) {
 
         await connection.execute('insert into incidentgroups (incident_id, group_id) values (?,?)', [incident_id, group_id]);
         connection.close();
-    }
-    async function showNewincident (res) {
-        const connection = await mysql.createConnection(mysql_config);
-        const [rows2, fields2] = await connection.execute('select * from Groups', []);
-        connection.close();
-        // res.render('incident/new', {
-        //     title: 'Новый инцедент',
-        //     groups: rows2
-        // });
-        res.status(200).json({status: "ok"});
     }
 
     // var router = express.Router();
@@ -74,24 +67,41 @@ module.exports = function(app, config, firebase_admin, router) {
     //     res.json(await helper.getAllIncidents(mysql_config));
     // });
 
-    router.post('/incident/new', function (req, res, next) {
-        let result = async function () {
+    router.post('/incident/new', async function (req, res, next) {
 
-            const connection = await mysql.createConnection(mysql_config);
-            // const [rows2, fields2] = await connection.execute('select * from Groups where id in ('+req.body.groups.join(',')+')', []);
-            const [rows2, fields2] = await connection.execute('insert into incident (title, description) values (?,?)', [req.body.title, req.body.description]);
+        const connection = await mysql.createConnection(mysql_config);
+        // const [rows2, fields2] = await connection.execute('select * from Groups where id in ('+req.body.groups.join(',')+')', []);
+        const [rows2, fields2] = await connection.execute('insert into incident (title, description) values (?,?)', [req.body.title, req.body.description]);
 
-            for(let i in req.body.groups) {
-                addincident(req.body.groups[i], rows2.insertId);
-            }
-
-            showNewincident(res);
-
-            app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
-            connection.close();
-        };
-        result();
+        for(let i in req.body.groups) {
+            addincident(req.body.groups[i], rows2.insertId);
+        }
+        res.status(200).json({status: "ok", insertedId: crypto.createHash('md5').update(rows2.insertId.toString()).digest("hex")}); // ответ клиенту
+        app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
+        connection.close();
     });
 
+    function attachFiles (req, res, path) {
+        var form = new formidable.IncomingForm();
+        form.parse(req);
+        form.on('fileBegin', function (name, file){
+            file.path = path + file.name;
+        });
+        form.on('file', function (name, file){
+            console.log('Uploaded ' + file.name);
+        });
+        res.status(200).send({status: "ok"})
+    }
+    router.post('/incident/attachFiles', async function (req, res) {
+        const path = __dirname + `/../inc_files/${req.query.insertedId}/`
+        if (await fs.existsSync(path)) {
+            console.log(`yes: ${path}`)
+            attachFiles(req, res, path)
+        } else {
+            console.log(`no: ${path}`)
+            await fs.mkdirSync(path, 0o770)
+            attachFiles(req, res, path)
+        }
+    })
     return router;
 };
