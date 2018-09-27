@@ -37,6 +37,7 @@ module.exports = function(app, config, firebase_admin) {
                 let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
             }
         }
+        connection.close()
     }
 
     async function getNotificationList() {
@@ -74,7 +75,7 @@ module.exports = function(app, config, firebase_admin) {
 
         app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
 
-        connection.close();
+        await connection.close();
     }
 
     schedule.scheduleJob('0 * * * * *', function() {
