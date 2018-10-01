@@ -23,7 +23,7 @@ module.exports = function(app, config, firebase_admin, router) {
     // router.get('/incident/new', function (req, res, next) {
     //     showNewincident(res);
     // });
-    router.post('/incident/checknotification', async function (req, res, next) {
+    router.post('/incident/notificationstatus', async function (req, res, next) {
 
         const connection = await mysql.createConnection(mysql_config);
         console.warn(req.body);
