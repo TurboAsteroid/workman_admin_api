@@ -64,7 +64,7 @@ module.exports = function(app, config, firebase_admin, router) {
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
             await connection.execute('delete from tags_groups', []);
-            await connection.execute('delete from Groups', []);
+            await connection.execute('delete from groups', []);
             await connection.execute('delete from grouprows ', []);
             await connection.execute('delete from grouprowusers ', []);
             for (let i in req.body) {
@@ -76,7 +76,7 @@ module.exports = function(app, config, firebase_admin, router) {
                     if (!row.users.length) {
                         break;
                     }
-                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into GroupRows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
+                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
                     let ins_id = GroupRows_res.insertId;
 
                     for (let l in row.users) {
@@ -106,8 +106,8 @@ module.exports = function(app, config, firebase_admin, router) {
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
             // query database
-            const [rows1, fields1] = await connection.execute('delete from Groups where name=?', [req.body.name]);
-            const [rows2, fields2] = await connection.execute('insert into Groups (name) values (?)', [req.body.name]);
+            const [rows1, fields1] = await connection.execute('delete from groups where name=?', [req.body.name]);
+            const [rows2, fields2] = await connection.execute('insert into groups (name) values (?)', [req.body.name]);
             console.warn("2rows, fields", rows2.insertId);
             let values = '';
 
@@ -118,8 +118,8 @@ module.exports = function(app, config, firebase_admin, router) {
             values = values.substring(0, values.length - 1);
 
 
-            const [rows3, fields3] = await connection.execute('insert into GroupRows (group_id, row_number, delay) values ' + values, []);
-            const [rows4, fields4] = await connection.execute('select * from GroupRows where group_id = ?', [rows2.insertId]);
+            const [rows3, fields3] = await connection.execute('insert into grouprows (group_id, row_number, delay) values ' + values, []);
+            const [rows4, fields4] = await connection.execute('select * from grouprows where group_id = ?', [rows2.insertId]);
             let values2 = '';
             for (let k in rows4) {
                 let row = rows4[k];

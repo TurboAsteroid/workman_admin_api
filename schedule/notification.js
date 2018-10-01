@@ -6,38 +6,41 @@ module.exports = function(app, config, firebase_admin) {
     const mysql_config = app.get('mysql_config');
 
     async function createNotification (incidentGroup_id, row_id, user_id, group_id, incident_id) {
-        const connection = await mysql.createConnection(mysql_config);
-        // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
+        try {
+            const connection = await mysql.createConnection(mysql_config);
+            // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
 
-        const [user_rows, user_fields] = await connection.execute('select users.*, tokens.token from users left join tokens on tokens.user_id = users.id where users.id = ?', [user_id]);
-        const [incident_rows, incident_fields] = await connection.execute('select * from incident where id = ?', [incident_id]);
-        const [rows, fields] = await connection.execute('insert into notification (incidentGroup_id, row_id, user_id) values (?,?,?)', [incidentGroup_id, row_id, user_id]);
-        var payload = {
-            // notification: {
-            //     title: incident_rows[0].title,
-            //     body: incident_rows[0].description
-            // },
-            data: {
-                title: incident_rows[0].title,
-                body: incident_rows[0].description,
-                incedent_id: incident_id.toString(),
-                incedentGroup_id: incidentGroup_id.toString(),
-                group_id: group_id.toString(),
-                row_id: row_id.toString(),
-                user_id: user_id.toString()
+            const [user_rows, user_fields] = await connection.execute('select users.*, tokens.token from users left join tokens on tokens.user_id = users.id where users.id = ?', [user_id]);
+            const [incident_rows, incident_fields] = await connection.execute('select * from incident where id = ?', [incident_id]);
+            const [rows, fields] = await connection.execute('insert into notification (incidentGroup_id, row_id, user_id) values (?,?,?)', [incidentGroup_id, row_id, user_id]);
+            var payload = {
+                // notification: {
+                //     title: incident_rows[0].title,
+                //     body: incident_rows[0].description
+                // },
+                data: {
+                    title: incident_rows[0].title,
+                    body: incident_rows[0].description,
+                    incedent_id: incident_id.toString(),
+                    incedentGroup_id: incidentGroup_id.toString(),
+                    group_id: group_id.toString(),
+                    row_id: row_id.toString(),
+                    user_id: user_id.toString()
+                }
+            };
+            var options = {
+                priority: "normal",
+                timeToLive: 60 * 60
+            };
+            for (let i in user_rows) {
+                if (user_rows[i].token) {
+                    let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
+                }
             }
-        };
-        var options = {
-            priority: "normal",
-            timeToLive: 60 * 60
-        };
-        console.log("payload", payload);
-        for (let i in user_rows) {
-            if (user_rows[i].token) {
-                let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
-            }
+            connection.close()
+        } catch (e) {
+            console.log(new Date() + ' ::: ' + e)
         }
-        connection.close()
     }
 
     async function getNotificationList() {

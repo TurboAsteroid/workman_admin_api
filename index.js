@@ -22,9 +22,14 @@ httpServer3003.listen(3003, () => {
 });
 
 // Certificate
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/alert.elem.ru/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/alert.elem.ru/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/alert.elem.ru/chain.pem', 'utf8');
+/*
 const privateKey = fs.readFileSync('./alert.elem.ru/privkey.pem', 'utf8');
 const certificate = fs.readFileSync('./alert.elem.ru/cert.pem', 'utf8');
 const ca = fs.readFileSync('./alert.elem.ru/chain.pem', 'utf8');
+*/
 const credentials = {
   key: privateKey,
   cert: certificate,
