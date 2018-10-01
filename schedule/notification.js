@@ -12,6 +12,7 @@ module.exports = function(app, config, firebase_admin) {
         const [user_rows, user_fields] = await connection.execute('select users.*, tokens.token from users left join tokens on tokens.user_id = users.id where users.id = ?', [user_id]);
         const [incident_rows, incident_fields] = await connection.execute('select * from incident where id = ?', [incident_id]);
         const [rows, fields] = await connection.execute('insert into notification (incidentGroup_id, row_id, user_id) values (?,?,?)', [incidentGroup_id, row_id, user_id]);
+        console.warn("insert into notification ", rows);
         var payload = {
             // notification: {
             //     title: incident_rows[0].title,
@@ -20,6 +21,7 @@ module.exports = function(app, config, firebase_admin) {
             data: {
                 title: incident_rows[0].title,
                 body: incident_rows[0].description,
+                notification_id: incident_rows[0].id,
                 incedent_id: incident_id.toString(),
                 incedentGroup_id: incidentGroup_id.toString(),
                 group_id: group_id.toString(),

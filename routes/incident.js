@@ -23,21 +23,28 @@ module.exports = function(app, config, firebase_admin, router) {
     // router.get('/incident/new', function (req, res, next) {
     //     showNewincident(res);
     // });
-    router.post('/incident/checknotification', function (req, res, next) {
+    router.post('/incident/notificationstatus', async function (req, res, next) {
 
-        // console.log(req.body);
-        let result = async function () {
-            const connection = await mysql.createConnection(mysql_config);
-            await connection.execute('update notification SET complete = 1, timecheck = NOW() where id = ?', [req.body.notification_id]);
-            const [notR, notF] = await connection.execute('select incidentgroups.id as incidentgroup_id from notification left join incidentgroups on incidentgroups.id = notification.incidentGroup_id where notification.id = ?', [req.body.notification_id]);
-            await connection.execute('update incidentgroups SET complete = 1 where id = ?', [notR[0].incidentgroup_id]);
+        const connection = await mysql.createConnection(mysql_config);
 
-            res.json({status: '1'});
-            connection.close();
-// console.warn(app.get('io'));
-            app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
-        };
-        result();
+        switch (req.body.status) {
+            case "checked":
+                await connection.execute('update notification SET complete = 1, timecheck = NOW() where id = ?', [req.body.notification_id]);
+                const [notR, notF] = await connection.execute('select incidentgroups.id as incidentgroup_id from notification left join incidentgroups on incidentgroups.id = notification.incidentGroup_id where notification.id = ?', [req.body.notification_id]);
+                await connection.execute('update incidentgroups SET complete = 1 where id = ?', [notR[0].incidentgroup_id]);
+                break;
+            case "received":
+                await connection.execute('update notification SET timeget = NOW() where id = ?', [req.body.notification_id]);
+                break;
+            default:
+                console.warn("Не верный статус");
+                break;
+        }
+
+        res.json({status: '1'});
+        connection.close();
+
+        app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
     });
     router.get('/incident/getbynotification', function (req, res, next) {
         let result = async function () {
