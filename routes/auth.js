@@ -79,8 +79,11 @@ module.exports = function(app, cfg, router) {
                     }
                     if (auth) {
                         console.log(`${req.body.user.login} Authenticated!`);
-                        let token = await jwt.sign({login: req.body.user.login, password: req.body.user.password}, cfg.jwtSecret, {expiresIn: 86400 // expires in 24 hours
-                        });
+                        let token = await jwt.sign({login: req.body.user.login, password: req.body.user.password},
+                            cfg.jwtSecret,
+                            {
+                                expiresIn: '24h'
+                            });
                         res.status(200).send({ auth: true, token: token, user:  { name: req.body.user.login, isAdmin: 1 } });
                         console.log(token);
                         console.log(jwt.verify(token, cfg.jwtSecret))
