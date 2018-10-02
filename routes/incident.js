@@ -24,9 +24,8 @@ module.exports = function(app, config, firebase_admin, router) {
     //     showNewincident(res);
     // });
     router.post('/incident/notificationstatus', async function (req, res, next) {
-
-        const connection = await mysql.createConnection(mysql_config);
         console.warn(req.body);
+        const connection = await mysql.createConnection(mysql_config);
 
         switch (req.body.status) {
             case "checked":
