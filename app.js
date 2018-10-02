@@ -7,7 +7,7 @@ var cors = require('cors');
 var app = express();
 var config = require('./config');
 var firebase_admin = require('firebase-admin');
-var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-d25f46c201.json');
+var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-fa2aec8441.json');
 
 
 firebase_admin.initializeApp({
