@@ -6,9 +6,30 @@ var logger = require('morgan');
 var cors = require('cors');
 var app = express();
 var config = require('./config');
+
+
+const https = require('https');
+const options = {
+    hostname: 'https://www.googleapis.com/oauth2/v1/certs',
+    port: 443,
+    path: '/',
+    method: 'GET'
+};
+
+const req = https.request(options, (res) => {
+    console.log('google api result', res);
+});
+
+req.on('error', (e) => {
+    console.error(e);
+});
+req.end();
+
+
+
+
 var firebase_admin = require('firebase-admin');
 var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-7e9fcb94aa.json');
-
 
 firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(serviceAccount),
