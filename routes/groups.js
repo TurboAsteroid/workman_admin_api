@@ -69,7 +69,7 @@ module.exports = function(app, config, firebase_admin, router) {
             await connection.execute('delete from grouprowusers ', []);
             for (let i in req.body) {
                 let group = req.body[i];
-                await connection.execute('insert into Groups (id, name) values (?, ?)', [group.id, group.name]);
+                await connection.execute('insert into groups (id, name) values (?, ?)', [group.id, group.name]);
                 for (let j in group.data) {
                     let row = group.data[j];
                     console.warn(row.users);
