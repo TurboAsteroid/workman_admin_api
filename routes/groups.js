@@ -65,20 +65,21 @@ module.exports = function(app, config, firebase_admin, router) {
         let result = async function () {
             const connection = await mysql.createConnection(mysql_config);
             await connection.execute('delete from tags_groups', []);
-            await connection.execute('delete from groups', []);
-            await connection.execute('delete from grouprows ', []);
+            // await connection.execute('delete from groups', []);
+            // await connection.execute('delete from grouprows ', []);
             await connection.execute('delete from grouprowusers ', []);
             for (let i in req.body) {
                 let group = req.body[i];
-                await connection.execute('insert into groups (id, name) values (?, ?)', [group.id, group.name]);
+                await connection.execute('insert into groups (id, name) values (?, ?) ON DUPLICATE KEY UPDATE name = ?', [group.id, group.name, group.name]);
                 for (let j in group.data) {
                     let row = group.data[j];
                     console.warn(row.users);
                     if (!row.users.length) {
                         break;
                     }
-                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?)', [row.id, group.id, row.row_number, row.delay]);
-                    let ins_id = GroupRows_res.insertId;
+                    await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?) ON DUPLICATE KEY UPDATE row_number = ?, delay = ?', [row.id, group.id, row.row_number, row.delay, row.row_number, row.delay]);
+                    // let ins_id = GroupRows_res.insertId;
+                    let ins_id = row.id;
 
                     for (let l in row.users) {
                         let user_id;
