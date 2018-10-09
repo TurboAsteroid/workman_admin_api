@@ -27,6 +27,7 @@ module.exports = function(app, config, firebase_admin, router) {
             }
             if (!tmp_result[rows1[i].group_id].data_t[rows1[i].row_number]) {
                 tmp_result[rows1[i].group_id].data_t[rows1[i].row_number] = {
+                    id: rows1[i].id,
                     row_number: rows1[i].row_number,
                     delay: rows1[i].delay,
                     users: [{
