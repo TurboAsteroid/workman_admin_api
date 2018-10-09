@@ -27,6 +27,7 @@ module.exports = function(app, config, firebase_admin, router) {
             }
             if (!tmp_result[rows1[i].group_id].data_t[rows1[i].row_number]) {
                 tmp_result[rows1[i].group_id].data_t[rows1[i].row_number] = {
+                    id: rows1[i].id,
                     row_number: rows1[i].row_number,
                     delay: rows1[i].delay,
                     users: [{
@@ -69,14 +70,14 @@ module.exports = function(app, config, firebase_admin, router) {
             await connection.execute('delete from grouprowusers ', []);
             for (let i in req.body) {
                 let group = req.body[i];
-                await connection.execute('insert into Groups (id, name) values (?, ?)', [group.id, group.name]);
+                await connection.execute('insert into groups (id, name) values (?, ?)', [group.id, group.name]);
                 for (let j in group.data) {
                     let row = group.data[j];
                     console.warn(row.users);
                     if (!row.users.length) {
                         break;
                     }
-                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
+                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?)', [row.id, group.id, row.row_number, row.delay]);
                     let ins_id = GroupRows_res.insertId;
 
                     for (let l in row.users) {

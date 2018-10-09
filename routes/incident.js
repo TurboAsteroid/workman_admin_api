@@ -25,6 +25,7 @@ module.exports = function(app, config, firebase_admin, router) {
     // });
     router.post('/incident/notificationstatus', async function (req, res, next) {
 
+        console.warn(req.body);
         const connection = await mysql.createConnection(mysql_config);
 
         switch (req.body.status) {
@@ -37,7 +38,7 @@ module.exports = function(app, config, firebase_admin, router) {
                 await connection.execute('update notification SET timeget = NOW() where id = ?', [req.body.notification_id]);
                 break;
             default:
-                console.warn("Не верный статус");
+                console.warn("Не верный статус", req.body.status);
                 break;
         }
 

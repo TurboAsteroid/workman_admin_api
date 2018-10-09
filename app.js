@@ -6,13 +6,13 @@ var logger = require('morgan');
 var cors = require('cors');
 var app = express();
 var config = require('./config');
-var firebase_admin = require('firebase-admin');
-var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-d25f46c201.json');
 
+var firebase_admin = require('firebase-admin');
+var serviceAccount = require('./alertnotification-a0fd6-firebase-adminsdk-qbv0s-7e9fcb94aa.json');
 
 firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(serviceAccount),
-    databaseURL: 'https://alertnotification-a0fd6.firebaseio.com/'
+    databaseURL: 'https://alertnotification-a0fd6.firebaseio.com'
 });
 
 app.use(cors({origin: '*'}));
