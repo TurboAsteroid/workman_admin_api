@@ -77,7 +77,7 @@ module.exports = function(app, config, firebase_admin, router) {
                     if (!row.users.length) {
                         break;
                     }
-                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
+                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?)', [row.id, group.id, row.row_number, row.delay]);
                     let ins_id = GroupRows_res.insertId;
 
                     for (let l in row.users) {
