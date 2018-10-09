@@ -77,9 +77,14 @@ module.exports = function(app, config, firebase_admin, router) {
                     if (!row.users.length) {
                         break;
                     }
-                    await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?) ON DUPLICATE KEY UPDATE row_number = ?, delay = ?', [row.id, group.id, row.row_number, row.delay, row.row_number, row.delay]);
-                    // let ins_id = GroupRows_res.insertId;
-                    let ins_id = row.id;
+                    let ins_id;
+                    if (row.id) {
+                        await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?) ON DUPLICATE KEY UPDATE row_number = ?, delay = ?', [row.id, group.id, row.row_number, row.delay, row.row_number, row.delay]);
+                        ins_id = row.id;
+                    } else {
+                        await connection.execute('insert into grouprows (group_id, row_number, delay) values (?,?,?)', [row.id, group.id, row.row_number, row.delay]);
+                        ins_id = GroupRows_res.insertId;
+                    }
 
                     for (let l in row.users) {
                         let user_id;
