@@ -7,6 +7,13 @@ module.exports = function(app, config, firebase_admin, router) {
 
     const mysql = require('mysql2/promise');
 
+    router.post('/users/logout', async function (req, res, next) {
+        const connection = await mysql.createConnection(mysql_config);
+        const [rows, fields] = await connection.execute('delete from tokens where token = ?', [req.body.token]);
+
+        res.json({status: '1'});
+    });
+
     router.post('/users/new', function (req, res, next) {
 
             let ad = app.get('AD');
