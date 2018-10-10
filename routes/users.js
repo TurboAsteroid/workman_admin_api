@@ -28,6 +28,25 @@ module.exports = function(app, config, firebase_admin, router) {
         });
     });
 
+    router.post('/users/add', function (req, res, next) {
+        let ad = app.get('AD');
+        let query = "(&(objectCategory=person)(objectClass=user)(employeeID=*" + req.body.empid + "*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+        // let query = "(displayName=*" + req.query.user + "*)";
+        ad.findUsers(query, true, async function(err, users) {
+            if (err) {
+                res.status(200).send({status: "false"})
+                return;
+            }
+            const connection = await mysql.createConnection(mysql_config);
+            await connection.execute('insert into users (name, login) values (?, ?)', [users[0].displayName, users[0].sAMAccountName]);
+            connection.close();
+
+            res.status(200).send({status: "ok"})
+
+
+        });
+    });
+
     router.post('/users/new', function (req, res, next) {
             let ad = app.get('AD');
             let login = req.body.login;
