@@ -12,9 +12,10 @@ RUN yarn
 # If you are building your code for production
 # RUN npm install --only=production
 
+RUN mkdir -p /etc/letsencrypt
+
 # Bundle app source
 COPY . .
 
 EXPOSE 3002
-EXPOSE 3003
 CMD [ "npm", "start" ]
