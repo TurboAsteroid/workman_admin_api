@@ -84,7 +84,7 @@ module.exports = {
                                 Nrows[t].row_id === result_array[n].groups[m].rows[l].row_id &&
                                 Nrows[t].user_id === result_array[n].groups[m].rows[l].users[k].value
                             ) {
-                                console.log("Nrows[t]", Nrows[t]);
+                                // console.log("Nrows[t]", Nrows[t]);
                                 result_array[n].groups[m].rows[l].users[k].status = Nrows[t].timecheck ? "green" : (Nrows[t].timeget ? "yellow" : (Nrows[t].timesent ? "orange" : "gray"));
                             }
                         }
@@ -93,9 +93,7 @@ module.exports = {
             }
         }
 
-
         // console.log(rows);
-
         connection.close();
         return result_array;
     }
