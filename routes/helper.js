@@ -8,7 +8,7 @@ module.exports = {
             'left join incidentgroups on incidentgroups.incident_id = incident.id ' +
             'left join groups on incidentgroups.group_id = groups.id', []);
         const [Urows, Ufields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id');
-        const [Nrows, Nfields] = await connection.execute('select * from notification');
+        const [Nrows, Nfields] = await connection.execute('select row_id, user_id, incidentgroup_id, max(timeget) as timeget, MIN(timecheck) as timecheck, Min(timesent) as timesent from notification group by incidentgroup_id, row_id, user_id');
         let rows_tmp = {};
         for (let j in Urows) {
             if (!rows_tmp[Urows[j].group_id]) {
