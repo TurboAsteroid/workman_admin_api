@@ -16,7 +16,7 @@ module.exports = function(app, config, firebase_admin, router) {
 
     router.get('/users/getADuser', function (req, res, next) {
         let ad = app.get('AD');
-        let query = "(&(objectClass=user)(displayName=*" + req.query.user + "*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
+        let query = "(&(objectCategory=person)(objectClass=user)(displayName=*" + req.query.user + "*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
         // let query = "(displayName=*" + req.query.user + "*)";
         ad.findUsers(query, true, function(err, users) {
             if (err) {
