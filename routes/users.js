@@ -14,10 +14,21 @@ module.exports = function(app, config, firebase_admin, router) {
         res.json({status: '1'});
     });
 
+    router.get('/users/getADuser', function (req, res, next) {
+        let ad = app.get('AD');
+        let query = "(cn=*" + req.query.user + "*)";
+        ad.findUsers(query, true, function(err, users) {
+            if (err) {
+                console.log('ERROR: ' +JSON.stringify(err));
+                return;
+            }
+
+            res.json(users);
+        });
+    });
+
     router.post('/users/new', function (req, res, next) {
-
             let ad = app.get('AD');
-
             let login = req.body.login;
             login = login.split('@')[0];
 
