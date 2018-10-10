@@ -94,7 +94,9 @@ module.exports = function(app, config, firebase_admin, router) {
                         } else {
                             continue;
                         }
-                        await connection.execute('insert into grouprowusers (user_id, row_id) values (?,?)', [user_id, ins_id]);
+                        if (user_id && user_id !== null) {
+                            await connection.execute('insert into grouprowusers (user_id, row_id) values (?,?)', [user_id, ins_id]);
+                        }
                     }
                 }
                 await connection.execute('delete from tags_groups where id_groups = ?', [group.id]);
