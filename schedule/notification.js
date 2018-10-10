@@ -22,7 +22,7 @@ module.exports = function(app, config, firebase_admin) {
                 data: {
                     title: incident_rows[0].title,
                     body: incident_rows[0].description,
-                    notification_id: rows.insertId,
+                    notification_id: rows.insertId.toString(),
                     incedent_id: incident_id.toString(),
                     incedentGroup_id: incidentGroup_id.toString(),
                     group_id: group_id.toString(),
