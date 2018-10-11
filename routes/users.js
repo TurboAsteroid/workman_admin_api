@@ -21,7 +21,7 @@ module.exports = function(app, config, firebase_admin, router) {
         return await rows;
     }
 
-    router.get('/users/getallusers', async function () {
+    router.get('/users/getallusers', async function (req, res, next) {
         res.json(await getallusers());
     });
 
