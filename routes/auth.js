@@ -7,7 +7,8 @@ module.exports = function(app, cfg, router) {
             url.parse(req.url, true).pathname === '/users/new' ||
             url.parse(req.url, true).pathname === '/users/logout' ||
             url.parse(req.url, true).pathname === '/incident/notificationstatus' ||
-            url.parse(req.url, true).pathname === '/incident/getbynotification'
+            url.parse(req.url, true).pathname === '/incident/getbynotification' ||
+            url.parse(req.url, true).pathname === '/file/download'
         ) {
             next()
         } else if(req.headers.authorization !== undefined && req.headers.authorization !== null) {

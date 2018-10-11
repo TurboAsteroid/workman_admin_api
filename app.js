@@ -51,6 +51,7 @@ require('./routes/groups')(app, config, firebase_admin, router);
 require('./routes/incident')(app, config, firebase_admin, router);
 require('./routes/users')(app, config, firebase_admin, router);
 require('./routes/tags')(app, config, router);
+require('./routes/file')(app, config, router);
 
 app.use(router);
 module.exports = app;

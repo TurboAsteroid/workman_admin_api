@@ -14,11 +14,15 @@ module.exports = function(app, config, firebase_admin, router) {
         res.json({status: '1'});
     });
 
-    router.get('/users/getallusers', async function (req, res, next) {
+    async function getallusers (req, res, next) {
         const connection = await mysql.createConnection(mysql_config);
-        const [rows, fields] = await connection.execute('select * from users', []);
+        const [rows, fields] = await connection.execute('select * from users order by name', []);
         connection.close();
-        res.json(rows);
+        return await rows;
+    }
+
+    router.get('/users/getallusers', async function () {
+        res.json(await getallusers());
     });
 
     router.get('/users/getADuser', function (req, res, next) {
@@ -42,16 +46,14 @@ module.exports = function(app, config, firebase_admin, router) {
         ad.findUsers(query, true, async function(err, users) {
             console.log("users", users, req.body);
             if (err) {
-                res.status(200).send({status: "false"});
+                res.status(405).send({status: "false"});
                 return;
             }
             const connection = await mysql.createConnection(mysql_config);
             await connection.execute('insert into users (name, login) values (?, ?) ON DUPLICATE KEY UPDATE login=login', [users[0].displayName, users[0].sAMAccountName]);
             connection.close();
 
-            res.status(200).send({status: "ok"})
-
-
+            res.status(200).send(await getallusers());
         });
     });
 
