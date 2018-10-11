@@ -10,8 +10,15 @@ module.exports = function(app, config, firebase_admin, router) {
     router.post('/users/logout', async function (req, res, next) {
         const connection = await mysql.createConnection(mysql_config);
         const [rows, fields] = await connection.execute('delete from tokens where token = ?', [req.body.token]);
-
+        connection.close();
         res.json({status: '1'});
+    });
+
+    router.get('/users/getallusers', async function (req, res, next) {
+        const connection = await mysql.createConnection(mysql_config);
+        const [rows, fields] = await connection.execute('select * from users', []);
+        connection.close();
+        res.json(rows);
     });
 
     router.get('/users/getADuser', function (req, res, next) {
@@ -39,7 +46,7 @@ module.exports = function(app, config, firebase_admin, router) {
                 return;
             }
             const connection = await mysql.createConnection(mysql_config);
-            await connection.execute('insert into users (name, login) values (?, ?)', [users[0].displayName, users[0].sAMAccountName]);
+            await connection.execute('insert into users (name, login) values (?, ?) ON DUPLICATE KEY UPDATE login=login', [users[0].displayName, users[0].sAMAccountName]);
             connection.close();
 
             res.status(200).send({status: "ok"})
