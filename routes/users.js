@@ -33,8 +33,9 @@ module.exports = function(app, config, firebase_admin, router) {
         let query = "(&(objectCategory=person)(objectClass=user)(employeeID=*" + req.body.employeeID + "*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))";
         // let query = "(displayName=*" + req.query.user + "*)";
         ad.findUsers(query, true, async function(err, users) {
+            console.log("users", users, req.body);
             if (err) {
-                res.status(200).send({status: "false"})
+                res.status(200).send({status: "false"});
                 return;
             }
             const connection = await mysql.createConnection(mysql_config);
