@@ -49,18 +49,28 @@ module.exports = function(app, config, firebase_admin, router) {
     });
     router.get('/incident/getbynotification', function (req, res, next) {
         let result = async function () {
-            let notification_id = url.parse(req.url, true).query.notification_id;
+            let notification_id = req.query.notification_id;
 
             const connection = await mysql.createConnection(mysql_config);
             const [incR, incF] = await connection.execute('select incident.*, DATE_FORMAT(incident.datetime, "%H:%i:%S %d-%m-%Y") as time from notification ' +
                 'left join incidentgroups on incidentgroups.id = notification.incidentGroup_id ' +
                 'left join incident on incident.id = incidentgroups.incident_id ' +
                 'where notification.id = ?', [notification_id]);
+
+            let dirname = "./inc_files/" + crypto.createHash('md5').update(incR[0].id.toString()).digest("hex") + "/";
+            let filesArray = [];
+
+            if (await fs.existsSync(dirname)) {
+                filesArray = await fs.readdirSync(dirname);
+            }
+
             res.json({
                 title: incR[0].title,
+                incident_id: incR[0].id.toString(),
                 description: incR[0].description,
                 datetime: incR[0].time,
-                solution: "Здесь будут описаны возможные способы решения проблемы, а также необходимые контактные данные."
+                solution: "Здесь будут описаны возможные способы решения проблемы, а также необходимые контактные данные.",
+                files: filesArray
             });
             connection.close();
         };

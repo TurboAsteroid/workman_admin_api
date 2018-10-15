@@ -53,7 +53,8 @@ module.exports = function(app, config, firebase_admin, router) {
             await connection.execute('insert into users (name, login) values (?, ?) ON DUPLICATE KEY UPDATE login=login', [users[0].displayName, users[0].sAMAccountName]);
             connection.close();
 
-            res.status(200).send(await getallusers());
+            // res.status(200).send(await getallusers());
+            res.status(200).send({status: "ok"});
         });
     });
 
@@ -103,7 +104,7 @@ module.exports = function(app, config, firebase_admin, router) {
                 const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incident.title, incident.description from notification ' +
                     'left join incidentgroups on notification.incidentGroup_id = incidentgroups.id ' +
                     'left join incident on incident.id = incidentgroups.incident_id ' +
-                    'where user_id = ? and (notification.complete = 0 or TIMESTAMPDIFF(HOUR, notification.timesent, NOW()) <= 72) order by notification.complete, incident.datetime desc', [rows[0].id]);
+                    'where user_id = ? and (notification.complete = 0 or TIMESTAMPDIFF(HOUR, notification.timesent, NOW()) <= 972) order by notification.complete, incident.datetime desc', [rows[0].id]);
                 // console.warn({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
                 res.json({status: 1, userid: rows[0].id, name: rows[0].name, notification: rows1});
             } else {
