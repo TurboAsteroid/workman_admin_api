@@ -5,15 +5,20 @@ module.exports = function(app, cfg, router) {
             req.originalUrl === '/auth/login' ||
             url.parse(req.url, true).pathname === '/users/getbytoken' ||
             url.parse(req.url, true).pathname === '/users/new' ||
-            url.parse(req.url, true).pathname === '/users/logout' ||
-            url.parse(req.url, true).pathname === '/incident/notificationstatus' ||
-            url.parse(req.url, true).pathname === '/incident/getbynotification' ||
-            url.parse(req.url, true).pathname === '/file/download'
+            url.parse(req.url, true).pathname === '/incident/checknotification' ||
+            url.parse(req.url, true).pathname === '/incident/getbynotification'
         ) {
             next()
-        } else if(req.headers.authorization !== undefined && req.headers.authorization !== null) {
-            const token = req.headers.authorization.replace(/Bearer /g,"");
+        } else if ((req.headers.authorization !== undefined && req.headers.authorization !== null) || (req.query.jwt !== undefined && req.query.jwt !== null)) {
             try {
+                let token = '';
+                if (req.query.jwt !== undefined && req.query.jwt !== null) {
+                    token = req.query.jwt
+                } else {
+                    token = req.headers.authorization.replace(/Bearer /g, '')
+                }
+
+
                 const decoded = jwt.verify(token, cfg.jwtSecret);
                 ad.findUser(decoded.login, function (err, user) {
                     if (err) {

@@ -24,8 +24,6 @@ module.exports = function(app, config, firebase_admin, router) {
     //     showNewincident(res);
     // });
     router.post('/incident/notificationstatus', async function (req, res, next) {
-
-        console.warn('/incident/notificationstatus', req.body);
         const connection = await mysql.createConnection(mysql_config);
 
         switch (req.body.status) {
@@ -47,35 +45,30 @@ module.exports = function(app, config, firebase_admin, router) {
 
         app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
     });
-    router.get('/incident/getbynotification', function (req, res, next) {
-        let result = async function () {
-            let notification_id = req.query.notification_id;
+    router.get('/incident/getbynotification', async function (req, res, next) {
+        let notification_id = req.query.notification_id;
 
-            const connection = await mysql.createConnection(mysql_config);
-            const [incR, incF] = await connection.execute('select incident.*, DATE_FORMAT(incident.datetime, "%H:%i:%S %d-%m-%Y") as time from notification ' +
-                'left join incidentgroups on incidentgroups.id = notification.incidentGroup_id ' +
-                'left join incident on incident.id = incidentgroups.incident_id ' +
-                'where notification.id = ?', [notification_id]);
+        const connection = await mysql.createConnection(mysql_config);
+        const [incR, incF] = await connection.execute('select incident.*, DATE_FORMAT(incident.datetime, "%H:%i:%S %d-%m-%Y") as time from notification ' +
+            'left join incidentgroups on incidentgroups.id = notification.incidentGroup_id ' +
+            'left join incident on incident.id = incidentgroups.incident_id ' +
+            'where notification.id = ?', [notification_id]);
 
-            let dirname = "./inc_files/" + crypto.createHash('md5').update(incR[0].id.toString()).digest("hex") + "/";
-            let filesArray = [];
+        let dirname = "./inc_files/" + crypto.createHash('md5').update(incR[0].id.toString()).digest("hex") + "/";
+        let filesArray = [];
 
-            if (await fs.existsSync(dirname)) {
-                filesArray = await fs.readdirSync(dirname);
-            }
-
-            res.json({
-                title: incR[0].title,
-                incident_id: incR[0].id.toString(),
-                description: incR[0].description,
-                datetime: incR[0].time,
-                solution: "Здесь будут описаны возможные способы решения проблемы, а также необходимые контактные данные.",
-                files: filesArray
-            });
-            connection.close();
-        };
-        result();
-
+        if (await fs.existsSync(dirname)) {
+            filesArray = await fs.readdirSync(dirname);
+        }
+        res.json({
+            title: incR[0].title,
+            incident_id: incR[0].id.toString(),
+            description: incR[0].description,
+            datetime: incR[0].time,
+            solution: "Здесь будут описаны возможные способы решения проблемы, а также необходимые контактные данные.",
+            files: filesArray
+        });
+        connection.close();
     });
     router.get('/incident/getall', async function (req, res, next) {
         res.json(await helper.getAllIncidents(mysql_config));
@@ -100,7 +93,7 @@ module.exports = function(app, config, firebase_admin, router) {
     });
 
     function attachFiles (req, res, path) {
-        var form = new formidable.IncomingForm();
+        let form = new formidable.IncomingForm();
         form.parse(req);
         form.on('fileBegin', function (name, file){
             file.path = path + file.name;
@@ -110,16 +103,17 @@ module.exports = function(app, config, firebase_admin, router) {
         });
         res.status(200).send({status: "ok"})
     }
+
     router.post('/incident/attachFiles', async function (req, res) {
-        const path = __dirname + `/../inc_files/${req.query.insertedId}/`
+        const path = __dirname + `/../inc_files/${req.query.insertedId}/`;
         if (await fs.existsSync(path)) {
-            console.log(`yes: ${path}`)
-            attachFiles(req, res, path)
+            console.log(`yes: ${path}`);
+            attachFiles(req, res, path);
         } else {
-            console.log(`no: ${path}`)
-            await fs.mkdirSync(path, 0o770)
-            attachFiles(req, res, path)
+            console.log(`no: ${path}`);
+            await fs.mkdirSync(path, 0o770);
+            attachFiles(req, res, path);
         }
-    })
+    });
     return router;
 };

@@ -63,6 +63,8 @@ module.exports = function(app, config, firebase_admin, router) {
             let login = req.body.login;
             login = login.split('@')[0];
 
+            console.warn("req.body", req.body);
+
             ad.authenticate(login + '@elem.ru', req.body.password, function(err, auth) {
                 if (err || !auth) {
                     console.log('err!', err);
@@ -99,7 +101,7 @@ module.exports = function(app, config, firebase_admin, router) {
     router.get('/users/getbytoken', function (req, res, next) {
         let getusers = async function () {
             const connection = await mysql.createConnection(mysql_config);
-            const [rows, fields] = await connection.execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [url.parse(req.url, true).query.token]);
+            const [rows, fields] = await connection.execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [req.query.token]);
             if (rows.length > 0 && rows[0] && rows[0].id) {
                 const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incident.title, incident.description from notification ' +
                     'left join incidentgroups on notification.incidentGroup_id = incidentgroups.id ' +
