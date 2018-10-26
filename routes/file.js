@@ -4,10 +4,17 @@ module.exports = function(app, config, router) {
     const fs = require('fs');
     const crypto = require('crypto');
 
+
+    router.get('/incident/:hash/:filename', async function (req, res, next) {
+        let file = './inc_files/' + req.params.hash + '/' + req.params.filename;
+        let mimetype = mime.getType(file);
+        res.setHeader('Content-type', mimetype);
+        res.download(file);
+    });
     router.get('/file/download', async function (req, res, next) {
         let file = './inc_files/' + crypto.createHash('md5').update(req.query.incident_id).digest("hex") + '/' + req.query.filename;
 
-        let filename = path.basename(file);
+        // let filename = path.basename(file);
         let mimetype = mime.getType(file);
 
         // res.setHeader('Content-disposition', 'inline; filename="' + filename);
