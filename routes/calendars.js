@@ -1,6 +1,8 @@
 module.exports = function(app, config, router) {
     const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
+    const moment = require('moment');
+
 
     router.post('/calendar/:calendar_id', async function (req, res, next) {
         let calendar_id = req.params.calendar_id;
@@ -46,8 +48,9 @@ console.warn(events_req);
             hour12: false
         };
         events_rows.forEach((val) => {
-            val.start = new Date(val.start).toLocaleDateString('ko-KR',options);
-            val.end = new Date(val.end).toLocaleDateString('ko-KR',options);
+            ;
+            val.start = moment(val.start).format("YYYY.MM.DD HH:mm:ss");
+            val.end = moment(val.end).format("YYYY.MM.DD HH:mm:ss");
         });
 
         let result = {
