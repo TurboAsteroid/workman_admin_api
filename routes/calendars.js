@@ -46,8 +46,8 @@ console.warn(events_req);
             hour12: false
         };
         events_rows.forEach((val) => {
-            val.start = new Date(val.start).toLocaleDateString('ru-Ru',options);
-            val.end = new Date(val.end).toLocaleDateString('ru-Ru',options);
+            val.start = new Date(val.start).toLocaleDateString('ko-KR',options);
+            val.end = new Date(val.end).toLocaleDateString('ko-KR',options);
         });
 
         let result = {
