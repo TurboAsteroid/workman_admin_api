@@ -42,7 +42,8 @@ console.warn(events_req);
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit'
+            second: '2-digit',
+            hour12: false
         };
         events_rows.forEach((val) => {
             val.start = new Date(val.start).toLocaleDateString('ru-Ru',options);
