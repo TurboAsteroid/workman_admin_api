@@ -1,7 +1,6 @@
 module.exports = function(app, config, firebase_admin, router) {
     // var express = require('express');
     // var uniqid = require('uniqid');
-    const mysql_config = app.get('mysql_config');
     const mysql = require('mysql2/promise');
     const url = require('url');
     const helper = require('./helper');
@@ -10,7 +9,7 @@ module.exports = function(app, config, firebase_admin, router) {
     var formidable = require('formidable');
 
     async function addincident (group_id, incident_id) {
-        const connection = await mysql.createConnection(mysql_config);
+        const connection = await mysql.createConnection(config.dbConfig);
 
         // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
         // console.log("max_row", rows);
@@ -24,7 +23,7 @@ module.exports = function(app, config, firebase_admin, router) {
     //     showNewincident(res);
     // });
     router.post('/incident/notificationstatus', async function (req, res, next) {
-        const connection = await mysql.createConnection(mysql_config);
+        const connection = await mysql.createConnection(config.dbConfig);
 
         switch (req.body.status) {
             case "checked":
@@ -43,12 +42,12 @@ module.exports = function(app, config, firebase_admin, router) {
         res.json({status: '1'});
         connection.close();
 
-        app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
+        app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
     });
     router.get('/incident/getbynotification', async function (req, res, next) {
         let notification_id = req.query.notification_id;
 
-        const connection = await mysql.createConnection(mysql_config);
+        const connection = await mysql.createConnection(config.dbConfig);
         const [incR, incF] = await connection.execute('select incident.*, DATE_FORMAT(incident.datetime, "%H:%i:%S %d-%m-%Y") as time from notification ' +
             'left join incidentgroups on incidentgroups.id = notification.incidentGroup_id ' +
             'left join incident on incident.id = incidentgroups.incident_id ' +
@@ -71,16 +70,16 @@ module.exports = function(app, config, firebase_admin, router) {
         connection.close();
     });
     router.get('/incident/getall', async function (req, res, next) {
-        res.json(await helper.getAllIncidents(mysql_config));
+        res.json(await helper.getAllIncidents(config.dbConfig));
     });
 
     // router.get('/socket', async function (req, res, next) {
-    //     res.json(await helper.getAllIncidents(mysql_config));
+    //     res.json(await helper.getAllIncidents(config.dbConfig));
     // });
 
     router.post('/incident/new', async function (req, res, next) {
 
-        const connection = await mysql.createConnection(mysql_config);
+        const connection = await mysql.createConnection(config.dbConfig);
         // const [rows2, fields2] = await connection.execute('select * from Groups where id in ('+req.body.groups.join(',')+')', []);
         const [rows2, fields2] = await connection.execute('insert into incident (title, description) values (?,?)', [req.body.title, req.body.description]);
 
@@ -88,7 +87,7 @@ module.exports = function(app, config, firebase_admin, router) {
             addincident(req.body.groups[i], rows2.insertId);
         }
         res.status(200).json({status: "ok", insertedId: crypto.createHash('md5').update(rows2.insertId.toString()).digest("hex")}); // ответ клиенту
-        app.get('io').emit('incidents', await helper.getAllIncidents(mysql_config));
+        app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
         connection.close();
     });
 

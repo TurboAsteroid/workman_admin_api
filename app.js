@@ -25,13 +25,6 @@ app.use(express.json()); // it is body-parser
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.set('mysql_config', {
-    user:  config.dbUser,
-    password: config.dbPassword,
-    host: config.dbHost,
-    database: config.dbDatabase,
-});
-
 app.set('AD_config', {
     url: config.ldapurl,
     baseDN: config.ldapbaseDN,
