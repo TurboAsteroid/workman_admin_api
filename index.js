@@ -6,6 +6,8 @@ let fs = require('fs');
 let express = require('express');
 let helper = require('./routes/helper');
 
+const mysql = require('mysql2/promise');
+
 const privateKey = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/privkey.pem', 'utf8');
 const certificate = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/cert.pem', 'utf8');
 const ca = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/chain.pem', 'utf8');
@@ -33,6 +35,7 @@ io.on('connection', async (socket) => {
       usersConnected--;
       console.log(new Date() + ' ::: user disconnected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
   });
+
   socket.emit('incidents', await helper.getAllIncidents(app.get('mysql_config')));
 });
 app.set('io', io);

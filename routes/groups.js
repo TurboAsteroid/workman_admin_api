@@ -1,35 +1,52 @@
 module.exports = function(app, config, firebase_admin, router) {
 
     const mysql = require('mysql2/promise');
-    const mysql_config = app.get('mysql_config');
 
     /* */
+    router.patch('/groups/:id', async function (req, res) {
+        let group_id = req.params.id;
+        let name = req.body.name;
+
+        const connection = await mysql.createConnection(config.dbConfig);
+        await connection.execute('update groups SET name = ? where id = ?', [name, group_id]);
+        connection.close();
+
+        res.json({status: "ok"});
+    });
+    router.delete('/groups/:id', async function (req, res) {
+        let group_id = req.params.id;
+
+        const connection = await mysql.createConnection(config.dbConfig);
+        await connection.execute('delete from groups where id = ?', [group_id ]);
+        connection.close();
+
+        res.json({status: "ok"});
+    });
     router.get('/groups/get', async function (req, res) {
-        const connection = await mysql.createConnection(mysql_config);
+        const connection = await mysql.createConnection(config.dbConfig);
         const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id where tags_groups.id_groups IS NOT NULL ', []);
-        console.log(grR);
         // const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
         //     'left join grouprows on groups.id = grouprows.group_id ' +
         //     'left join grouprowusers on grouprows.id = grouprowusers.row_id ' +
         //     'left join users on users.id = grouprowusers.user_id ', []);
-        const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name from groups ' +
+        const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, groups.id as groupp_id from groups ' +
             'left join grouprows on groups.id = grouprows.group_id ', []);
 
         let tmp_result = {};
-        rows1.forEach((row, i) => {});
         for (let i in rows1) {
-            if (!tmp_result[rows1[i].group_id]) {
-                tmp_result[rows1[i].group_id] = {
-                    id: rows1[i].group_id,
-                    value: rows1[i].group_id,
+            if (!tmp_result[rows1[i].groupp_id]) {
+                tmp_result[rows1[i].groupp_id] = {
+                    id: rows1[i].groupp_id,
+                    value: rows1[i].groupp_id,
                     name: rows1[i].name,
                     text: rows1[i].name,
                     tags: [],
                     data_t: {}
                 };
             }
-            if (!tmp_result[rows1[i].group_id].data_t[rows1[i].row_number]) {
-                tmp_result[rows1[i].group_id].data_t[rows1[i].row_number] = {
+
+            if (rows1[i].row_number && rows1[i].row_number !== null && !tmp_result[rows1[i].groupp_id].data_t[rows1[i].row_number]) {
+                tmp_result[rows1[i].groupp_id].data_t[rows1[i].row_number] = {
                     id: rows1[i].id,
                     row_number: rows1[i].row_number,
                     delay: rows1[i].delay,
@@ -39,25 +56,30 @@ module.exports = function(app, config, firebase_admin, router) {
 
             let rows_ids = [];
             rows1.forEach((row) => {
-                rows_ids.push(row.id);
-            });
-            const [users_rows, users_fields] = await connection.execute(`select Concat('user_', user_id) as value, user_id as id, users.name as text, 'user' as type, grouprowusers.row_id from grouprowusers 
-            left join users on users.id = grouprowusers.user_id 
-            where grouprowusers.row_id in (${rows_ids.join(",")})`, []);
-            const [calendar_rows, calendar_fields] = await connection.execute(`select Concat('group_', calendar_id) as value, calendar_id as id, calendars.name as text, 'group' as type, grouprowcalendars.row_id from grouprowcalendars
-            left join calendars on calendars.id = grouprowcalendars.calendar_id 
-            where grouprowcalendars.row_id in (${rows_ids.join(",")})`, []);
-            let users = users_rows.concat(calendar_rows);
-            users.forEach((user) => {
-                if (user.row_id === rows1[i].id) {
-                    tmp_result[rows1[i].group_id].data_t[rows1[i].row_number].users.push({
-                        value: user.value,
-                        text: user.text,
-                        type: user.type,
-                        id: user.id
-                    });
+                if (row.id && row.id !== null) {
+                    rows_ids.push(row.id);
                 }
             });
+            if (rows_ids.length) {
+                const [users_rows, users_fields] = await connection.execute(`select Concat('user_', user_id) as value, user_id as id, users.name as text, 'user' as type, grouprowusers.row_id from grouprowusers 
+                    left join users on users.id = grouprowusers.user_id 
+                    where grouprowusers.row_id in (${rows_ids.join(",")})`, []);
+                const [calendar_rows, calendar_fields] = await connection.execute(`select Concat('group_', calendar_id) as value, calendar_id as id, calendars.name as text, 'group' as type, grouprowcalendars.row_id from grouprowcalendars
+                    left join calendars on calendars.id = grouprowcalendars.calendar_id 
+                    where grouprowcalendars.row_id in (${rows_ids.join(",")})`, []);
+                let users = users_rows.concat(calendar_rows);
+                users.forEach((user) => {
+                    if (user.row_id === rows1[i].id) {
+                        tmp_result[rows1[i].groupp_id].data_t[rows1[i].row_number].users.push({
+                            value: user.value,
+                            text: user.text,
+                            type: user.type,
+                            id: user.id
+                        });
+                    }
+                });
+            }
+
         }
         let result_array = [];
         for (let i in tmp_result) {
@@ -80,7 +102,7 @@ module.exports = function(app, config, firebase_admin, router) {
         connection.close();
     });
     router.post('/groups/saveall', async function (req, res, next) {
-        const connection = await mysql.createConnection(mysql_config);
+        const connection = await mysql.createConnection(config.dbConfig);
         await connection.execute('delete from tags_groups', []);
         await connection.execute('delete from grouprowusers ', []);
         await connection.execute('delete from grouprowcalendars ', []);
@@ -115,11 +137,9 @@ module.exports = function(app, config, firebase_admin, router) {
                     if (user_id && user_id !== null) {
                         switch (type) {
                             case "user":
-                                console.log(1, [user_id, ins_id]);
                                 await connection.execute('insert into grouprowusers (user_id, row_id) values (?,?)', [user_id, ins_id]);
                                 break;
                             case "group":
-                                console.log(2, [user_id, ins_id]);
                                 await connection.execute('insert into grouprowcalendars (calendar_id, row_id) values (?,?)', [user_id, ins_id]);
                                 break;
                         }
@@ -140,7 +160,7 @@ module.exports = function(app, config, firebase_admin, router) {
     // router.post('/groups/save', async function (req, res, next) {
     //     let data = JSON.parse(req.body.data);
     //
-    //     const connection = await mysql.createConnection(mysql_config);
+    //      console.log("***");const connection = await mysql.createConnection(config.dbConfig);
     //     // query database
     //     const [rows1, fields1] = await connection.execute('delete from groups where name=?', [req.body.name]);
     //     const [rows2, fields2] = await connection.execute('insert into groups (name) values (?)', [req.body.name]);
