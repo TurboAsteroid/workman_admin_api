@@ -24,7 +24,6 @@ module.exports = function(app, config, firebase_admin, router) {
     // });
     router.post('/incident/notificationstatus', async function (req, res, next) {
         const connection = await mysql.createConnection(config.dbConfig);
-
         switch (req.body.status) {
             case "checked":
                 await connection.execute('update notification SET complete = 1, timecheck = NOW() where id = ?', [req.body.notification_id]);
