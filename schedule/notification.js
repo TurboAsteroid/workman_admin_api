@@ -3,11 +3,9 @@ module.exports = function(app, config, firebase_admin) {
     const mysql = require('mysql2/promise');
     const helper = require('../routes/helper');
 
-    async function createNotification (incidentGroup_id, row_id, user_id, group_id, incident_id, type, calendar_id = null, conn) {
-        // console.warn("!!!!!!", conn);
+    async function createNotification (incidentGroup_id, row_id, user_id, group_id, incident_id, type, calendar_id = null) {
         try {
-            // const connection = await mysql.createConnection(config.dbConfig);
-            const connection = conn;
+            const connection = await mysql.createConnection(config.dbConfig);
             // const [rows, fields] = await connection.execute('select MAX(row_number) as max_row from grouprows where group_id = ? group by group_id', [group_id]);
 
             const [user_rows, user_fields] = await connection.execute('select users.*, tokens.token from users left join tokens on tokens.user_id = users.id where users.id = ?', [user_id]);
@@ -34,10 +32,12 @@ module.exports = function(app, config, firebase_admin) {
                     let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
                 }
             }
-            // connection.close()
+            connection.close()
         } catch (e) {
             console.log(new Date() + ' !::::: ' + e)
         }
+        // console.warn("!!!!!!", conn);
+
     }
 
     async function getNotificationList() {
@@ -49,7 +49,7 @@ module.exports = function(app, config, firebase_admin) {
             for (let i in rows1) {
                 let [rows, fields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id where grouprows.group_id = ? and row_number = ?', [rows1[i].group_id, rows1[i].current_row]);
                 for (let j in rows) {
-                    await createNotification(rows1[i].id, rows[j].row_id, rows[j].user_id, rows1[i].group_id, rows1[i].incident_id, "user", connection);
+                    await createNotification(rows1[i].id, rows[j].row_id, rows[j].user_id, rows1[i].group_id, rows1[i].incident_id, "user");
                 }
 
                 let [rows_x, fields2] = await connection.execute(`select * from grouprows
@@ -60,7 +60,7 @@ module.exports = function(app, config, firebase_admin) {
                     let [calendar_u, calendar_f] = await connection.execute(`select user_id from calendars_events
                     where calendar_id = ? AND start < NOW() AND end > now()`, [rows_x[j].calendar_id]);
                     for (let l in calendar_u) {
-                        await createNotification(rows1[i].id, rows_x[j].row_id, calendar_u[l].user_id, rows1[i].group_id, rows1[i].incident_id, "group", rows_x[j].calendar_id, connection);
+                        await createNotification(rows1[i].id, rows_x[j].row_id, calendar_u[l].user_id, rows1[i].group_id, rows1[i].incident_id, "group", rows_x[j].calendar_id);
                     }
                 }
                 // console.log("rows1[i].incidentGroup_id, rows1[i].group_id, rows1[i].current_row", rows1[i].id, rows1[i].group_id, rows1[i].current_row);
@@ -93,7 +93,7 @@ module.exports = function(app, config, firebase_admin) {
                     let [calendar_u, calendar_f] = await connection.execute(`select user_id from calendars_events
                     where calendar_id = ? AND start < NOW() AND end > now()`, [rows_x[j].calendar_id]);
                     for (let l in calendar_u) {
-                        await createNotification(rows2[i].id, rows_x[j].row_id, calendar_u[l].user_id, rows2[i].group_id, rows2[i].incident_id, "group", rows_x[j].calendar_id, connection);
+                        await createNotification(rows2[i].id, rows_x[j].row_id, calendar_u[l].user_id, rows2[i].group_id, rows2[i].incident_id, "group", rows_x[j].calendar_id);
                     }
                 }
 

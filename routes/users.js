@@ -6,6 +6,7 @@ module.exports = function(app, config, firebase_admin, router) {
     const mysql = require('mysql2/promise');
 
     router.post('/users/logout', async function (req, res, next) {
+        console.log(123123);
         const connection = await mysql.createConnection(config.dbConfig);
         const [rows, fields] = await connection.execute('delete from tokens where token = ?', [req.body.token]);
         connection.close();
