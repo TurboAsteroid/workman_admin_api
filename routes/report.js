@@ -7,7 +7,7 @@ module.exports = function(app, config, router) {
         let status = req.query.status;
         let value = req.query.value;
 
-        res.json(helper.getAllIncidents(config.dbConfig, timestart, timeend, status, value));
+        res.json(helper.getAllIncidents(timestart, timeend, status, value));
     });
 
     return router;

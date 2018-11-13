@@ -41,7 +41,7 @@ module.exports = function(app, config, firebase_admin, router) {
         res.json({status: '1'});
         connection.end();
 
-        app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
+        app.get('io').emit('incidents', await helper.getAllIncidents());
     });
     router.get('/incident/getbynotification', async function (req, res, next) {
         let notification_id = req.query.notification_id;
@@ -69,7 +69,7 @@ module.exports = function(app, config, firebase_admin, router) {
         connection.end();
     });
     router.get('/incident/getall', async function (req, res, next) {
-        res.json(await helper.getAllIncidents(config.dbConfig));
+        res.json(await helper.getAllIncidents());
     });
 
     // router.get('/socket', async function (req, res, next) {
@@ -86,7 +86,7 @@ module.exports = function(app, config, firebase_admin, router) {
             addincident(req.body.groups[i], rows2.insertId);
         }
         res.status(200).json({status: "ok", insertedId: crypto.createHash('md5').update(rows2.insertId.toString()).digest("hex")}); // ответ клиенту
-        app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
+        app.get('io').emit('incidents', await helper.getAllIncidents());
         connection.end();
     });
 

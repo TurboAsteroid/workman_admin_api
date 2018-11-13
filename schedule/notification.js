@@ -101,7 +101,7 @@ module.exports = function(app, config, firebase_admin) {
             }
             await connection.end();
 
-            app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
+            app.get('io').emit('incidents', await helper.getAllIncidents());
         } catch (e) {
             console.log(new Date() + ' :!:::: ' + e)
         }
