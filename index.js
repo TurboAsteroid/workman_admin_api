@@ -37,7 +37,7 @@ io.on('connection', async (socket) => {
       console.log(new Date() + ' ::: user disconnected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
   });
 
-  socket.emit('incidents', await helper.getAllIncidents(config.dbConfig));
+  socket.emit('incidents', await helper.getAllIncidents());
 });
 app.set('io', io);
 

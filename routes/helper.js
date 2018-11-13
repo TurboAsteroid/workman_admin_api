@@ -2,6 +2,7 @@ const mysql = require('mysql2/promise');
 
 const crypto = require('crypto');
 const fs = require('fs');
+const config = require('../config');
 
 module.exports = {
     getColors : function () {
@@ -39,9 +40,9 @@ module.exports = {
             }
         };
     },
-    getAllIncidents : async function (mysql_config, timestart, timeend, status, value) {
+    getAllIncidents : async function (timestart, timeend, status, value) {
         try {
-            const connection = await mysql.createConnection(mysql_config);
+            const connection = await mysql.createConnection(config.dbConfig);
             let querystart = "", queryend = "", querystatus = "", queryvalue = "";
 
             if (timestart) {
