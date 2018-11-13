@@ -9,7 +9,7 @@ module.exports = function(app, config, firebase_admin, router) {
 
         const connection = await mysql.createConnection(config.dbConfig);
         await connection.execute('update groups SET name = ? where id = ?', [name, group_id]);
-        connection.close();
+        connection.end();
 
         res.json({status: "ok"});
     });
@@ -18,7 +18,7 @@ module.exports = function(app, config, firebase_admin, router) {
 
         const connection = await mysql.createConnection(config.dbConfig);
         await connection.execute('delete from groups where id = ?', [group_id ]);
-        connection.close();
+        connection.end();
 
         res.json({status: "ok"});
     });
@@ -99,7 +99,7 @@ module.exports = function(app, config, firebase_admin, router) {
         }
 
         res.json(result_array);
-        connection.close();
+        connection.end();
     });
     router.post('/groups/saveall', async function (req, res, next) {
         const connection = await mysql.createConnection(config.dbConfig);
@@ -152,7 +152,7 @@ module.exports = function(app, config, firebase_admin, router) {
             }
         }
         res.sendStatus(200);
-        connection.close();
+        connection.end();
 
     });
 
@@ -188,7 +188,7 @@ module.exports = function(app, config, firebase_admin, router) {
     //     const [rows5, fields5] = await connection.execute('insert into grouprowusers (user_id, row_id) values ' + values2, []);
     //
     //     res.json({ok: 1});
-    //     connection.close();
+    //     connection.end();
     // });
 
     return router;

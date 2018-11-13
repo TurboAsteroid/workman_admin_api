@@ -5,6 +5,7 @@ let https = require('https');
 let fs = require('fs');
 let express = require('express');
 let helper = require('./routes/helper');
+var config = require('./config');
 
 const mysql = require('mysql2/promise');
 
@@ -36,7 +37,7 @@ io.on('connection', async (socket) => {
       console.log(new Date() + ' ::: user disconnected. ip: ' + socket.handshake.address + ' total connected user(s): ' + usersConnected);
   });
 
-  socket.emit('incidents', await helper.getAllIncidents(app.get('mysql_config')));
+  socket.emit('incidents', await helper.getAllIncidents(config.dbConfig));
 });
 app.set('io', io);
 

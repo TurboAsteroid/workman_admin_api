@@ -5,7 +5,7 @@ module.exports = function(app, config, router) {
         const connection = await mysql.createConnection(config.dbConfig);
         const [rows1, fields1] = await connection.execute(`select tags.id as value, tags.text from tags`);
         res.json(rows1);
-        connection.close();
+        connection.end();
     });
 
     return router;

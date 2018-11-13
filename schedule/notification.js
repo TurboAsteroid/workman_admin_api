@@ -32,7 +32,7 @@ module.exports = function(app, config, firebase_admin) {
                     let result = await firebase_admin.messaging().sendToDevice(user_rows[i].token, payload, options);
                 }
             }
-            connection.close()
+            connection.end()
         } catch (e) {
             console.log(new Date() + ' !::::: ' + e)
         }
@@ -99,7 +99,7 @@ module.exports = function(app, config, firebase_admin) {
 
                 let [upd_rows, upd_fields] = await connection.execute('update incidentgroups SET current_row = ? ,time_sent = NOW() where id = ? and group_id = ? and current_row = ?', [current_row, rows2[i].id, rows2[i].group_id, rows2[i].current_row]);
             }
-            await connection.close();
+            await connection.end();
 
             app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
         } catch (e) {

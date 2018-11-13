@@ -15,7 +15,7 @@ module.exports = function(app, config, firebase_admin, router) {
         // console.log("max_row", rows);
 
         await connection.execute('insert into incidentgroups (incident_id, group_id) values (?,?)', [incident_id, group_id]);
-        connection.close();
+        connection.end();
     }
 
     // var router = express.Router();
@@ -39,7 +39,7 @@ module.exports = function(app, config, firebase_admin, router) {
         }
 
         res.json({status: '1'});
-        connection.close();
+        connection.end();
 
         app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
     });
@@ -66,7 +66,7 @@ module.exports = function(app, config, firebase_admin, router) {
             solution: "Здесь будут описаны возможные способы решения проблемы, а также необходимые контактные данные.",
             files: filesArray
         });
-        connection.close();
+        connection.end();
     });
     router.get('/incident/getall', async function (req, res, next) {
         res.json(await helper.getAllIncidents(config.dbConfig));
@@ -87,7 +87,7 @@ module.exports = function(app, config, firebase_admin, router) {
         }
         res.status(200).json({status: "ok", insertedId: crypto.createHash('md5').update(rows2.insertId.toString()).digest("hex")}); // ответ клиенту
         app.get('io').emit('incidents', await helper.getAllIncidents(config.dbConfig));
-        connection.close();
+        connection.end();
     });
 
     function attachFiles (req, res, path) {
