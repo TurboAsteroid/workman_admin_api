@@ -8,14 +8,14 @@ module.exports = function(app, config, firebase_admin, router) {
     router.post('/users/logout', async function (req, res, next) {
         const connection = await mysql.createConnection(config.dbConfig);
         const [rows, fields] = await connection.execute('delete from tokens where token = ?', [req.body.token]);
-        connection.close();
+        connection.end();
         res.json({status: '1'});
     });
 
     async function getallusers (req, res, next) {
         const connection = await mysql.createConnection(config.dbConfig);
         const [rows, fields] = await connection.execute('select * from users order by name', []);
-        connection.close();
+        connection.end();
         return await rows;
     }
 
@@ -48,7 +48,7 @@ module.exports = function(app, config, firebase_admin, router) {
             }
             const connection = await mysql.createConnection(config.dbConfig);
             await connection.execute('insert into users (name, login) values (?, ?) ON DUPLICATE KEY UPDATE login=login', [users[0].displayName, users[0].sAMAccountName]);
-            connection.close();
+            connection.end();
 
             // res.status(200).send(await getallusers());
             res.status(200).send({status: "ok"});
@@ -85,7 +85,7 @@ module.exports = function(app, config, firebase_admin, router) {
 
                             res.json({status: 1, userid: rows.insertId, name: user.displayName});
 
-                            connection.close();
+                            connection.end();
                         };
                         newuser();
                     }
@@ -107,7 +107,7 @@ module.exports = function(app, config, firebase_admin, router) {
             } else {
                 res.json({status: 0, userid: 0, name: '', notification: []});
             }
-            connection.close();
+            connection.end();
         };
         getusers();
     });

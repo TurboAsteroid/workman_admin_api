@@ -9,7 +9,7 @@ module.exports = function(app, config, firebase_admin, router) {
         let rows = user_rows.concat(group_rows);
 
         res.json(rows);
-        connection.close();
+        connection.end();
     });
 
     return router;

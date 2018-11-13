@@ -27,7 +27,7 @@ module.exports = function(app, config, router) {
         if (req.body.name && req.body.name.length) {
             await connection.execute('UPDATE calendars SET name = ? WHERE id = ?', [req.body.name, calendar_id]);
         }
-        connection.close();
+        connection.end();
 
         res.json({status: "ok"});
     });
@@ -35,7 +35,7 @@ module.exports = function(app, config, router) {
         let calendar_id = req.params.calendar_id;
         const connection = await mysql.createConnection(config.dbConfig);
         await connection.execute('delete from calendars where calendars.id = ? ', [calendar_id]);
-        connection.close();
+        connection.end();
         res.json({status: "ok"});
     });
     router.get('/calendar/:calendar_id', async function (req, res, next) {
@@ -44,7 +44,7 @@ module.exports = function(app, config, router) {
         const [calendar_row, calendar_fields] = await connection.execute('select name from calendars where id = ? ', [calendar_id]);
         const [users_rows, users_fields] = await connection.execute('select users.id, users.name from calendars_users left join users on calendars_users.user_id = users.id where calendars_users.calendar_id = ? ', [calendar_id]);
         const [events_rows, events_fields] = await connection.execute('select *, calendars_events.user_id as resource from calendars_events where calendars_events.calendar_id = ? ', [calendar_id]);
-        connection.close();
+        connection.end();
 
         events_rows.forEach((val) => {
             val.start = moment(val.start).format("YYYY.MM.DD HH:mm:ss");
@@ -63,7 +63,7 @@ module.exports = function(app, config, router) {
     router.get('/calendar/', async function (req, res, next) {
         const connection = await mysql.createConnection(config.dbConfig);
         const [calendars_rows, calendars_fields] = await connection.execute('select * from calendars ', []);
-        connection.close();
+        connection.end();
         res.json(calendars_rows);
     });
     router.post('/calendar/', async function (req, res, next) {
@@ -71,7 +71,7 @@ module.exports = function(app, config, router) {
         if(req.body.name) {
             const connection = await mysql.createConnection(config.dbConfig);
             const [calendars_rows, calendars_fields] = await connection.execute(`insert into calendars (\`name\`) values ('${name}')`, []);
-            connection.close();
+            connection.end();
             res.json({status: "ok", id: calendars_rows.insertId});
         } else {
             res.json({status: "fail"});

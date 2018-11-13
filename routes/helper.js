@@ -56,7 +56,6 @@ module.exports = {
             if (value) {
                 queryvalue = " AND (incident.title like '%" + value + "%' OR incident.title like '%" + description + "%') "
             }
-
             const [rows, fields] = await connection.execute('select incident.*, incidentgroups.group_id, incidentgroups.complete, incidentgroups.time_sent, groups.name, incidentgroups.id as incidentgroup_id ' +
                 'from incident ' +
                 'left join incidentgroups on incidentgroups.incident_id = incident.id ' +
@@ -67,6 +66,7 @@ module.exports = {
             // const [calendar_rows, calendar_fields] = await connection.execute('select * from calendars_events left join users on calendars_events.user_id = users.id');
             const [Nrows, Nfields] = await connection.execute('select row_id, user_id, incidentgroup_id, max(timeget) as timeget, MIN(timecheck) as timecheck, Min(timesent) as timesent, user_type, calendar_id from notification group by incidentgroup_id, row_id, user_id');
             let rows_tmp = {};
+
             for (let j in Urows) {
                 if (!rows_tmp[Urows[j].group_id]) {
                     rows_tmp[Urows[j].group_id] = {};
@@ -161,7 +161,6 @@ module.exports = {
             result_array = JSON.parse(result_array);
 
             for (let n in result_array) {
-
                 for (let m in result_array[n].groups) {
                     for (let l in result_array[n].groups[m].rows) {
                         for (let k in result_array[n].groups[m].rows[l].users) {
@@ -169,20 +168,18 @@ module.exports = {
                                 // console.log(result_array[n].groups[m].rows[l].users);
                                 // console.log(Nrows[t]);
                                 // if (result_array[n].groups[m].rows[l].users[k].type === "user") {
-                                if (
-                                    // Nrows[t].user_type === result_array[n].groups[m].rows[l].users[k].type &&
-                                Nrows[t].incidentgroup_id === result_array[n].groups[m].incidentgroup_id &&
-                                Nrows[t].row_id === result_array[n].groups[m].rows[l].row_id &&
-                                Nrows[t].user_id === result_array[n].groups[m].rows[l].users[k].id
+                                if (Nrows[t].user_type === result_array[n].groups[m].rows[l].users[k].type &&
+                                    Nrows[t].incidentgroup_id === result_array[n].groups[m].incidentgroup_id &&
+                                    Nrows[t].row_id === result_array[n].groups[m].rows[l].row_id &&
+                                    (
+                                        (Nrows[t].user_type === "group" && Nrows[t].calendar_id === result_array[n].groups[m].rows[l].users[k].id) ||
+                                        (Nrows[t].user_type === "user" && Nrows[t].user_id === result_array[n].groups[m].rows[l].users[k].id)
+                                    )
                                 ) {
                                     result_array[n].groups[m].rows[l].users[k].status =
                                         Nrows[t].timecheck ? this.getAllStatuses().notifications.statuses.green.value :
-                                            (Nrows[t].timeget ? this.getAllStatuses().notifications.statuses.orange.value : (Nrows[t].timesent ? this.getAllStatuses().notifications.statuses.red.value : this.getAllStatuses().notifications.statuses.green.value));
+                                            (Nrows[t].timeget ? this.getAllStatuses().notifications.statuses.orange.value : (Nrows[t].timesent ? this.getAllStatuses().notifications.statuses.red.value : this.getAllStatuses().notifications.statuses.gray.value));
                                 }
-                                // } else if (result_array[n].groups[m].rows[l].users[k].type === "group") {
-                                //
-                                // }
-
                             }
                         }
                     }
@@ -190,7 +187,7 @@ module.exports = {
             }
 
             // console.log(rows);
-            connection.close();
+            connection.end();
             return result_array;
         } catch (e) {
             console.log(new Date() + ' :!:::: ' + e)
