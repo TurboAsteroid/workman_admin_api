@@ -1,8 +1,11 @@
+let DataBase = require('../routes/db');
+
 const mysql = require('mysql2/promise');
 
 const crypto = require('crypto');
 const fs = require('fs');
 const config = require('../config');
+const moment = require('moment');
 
 module.exports = {
     getColors : function () {
@@ -18,15 +21,31 @@ module.exports = {
             "incidents": {
                 title: 'Статусы инцидента',
                 statuses: {
-                    "green": {text: 'Обработан', value: this.getColors().green},
-                    "red": {text: 'Не обработан', value: this.getColors().red}
+                    "green": {
+                        text: 'Обработан',
+                        value: this.getColors().green,
+                        key: 1
+                    },
+                    "red": {
+                        text: 'Не обработан',
+                        value: this.getColors().red,
+                        key: 0
+                    }
                 }
             },
             "groups": {
                 title: 'Статусы группы',
                 statuses: {
-                    "green": {text: 'Обработано', value: this.getColors().green},
-                    "red": {text: 'Не обработано', value: this.getColors().red}
+                    "green": {
+                        text: 'Обработано',
+                        value: this.getColors().green,
+                        key: 1
+                    },
+                    "red": {
+                        text: 'Не обработано',
+                        value: this.getColors().red,
+                        key: 0
+                    }
                 }
             },
             "notifications": {
@@ -40,34 +59,33 @@ module.exports = {
             }
         };
     },
-    getAllIncidents : async function (timestart, timeend, status, value) {
+    getAllIncidents : async function (timestart, timeend, status, val) {
         try {
-            const connection = await mysql.createConnection(config.dbConfig);
+            //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
             let querystart = "", queryend = "", querystatus = "", queryvalue = "";
 
             if (timestart) {
-                querystart = " AND incident.datetime > " + timestart + " "
+                querystart = ' AND incident.datetime > "' + timestart + '" ';
             }
             if (timeend) {
-                queryend = " AND incident.datetime < " + timeend + " "
+                queryend = ' AND incident.datetime < "' + moment(timeend).add(1, 'day').format("YYYY-MM-DD") + '" ';
             }
             if (status) {
-                querystatus = " AND incident.id IN (select incidentgroups.incident_id from incidentgroups group by incidentgroups.incident_id having min(incidentgroups.complete) " + (status ? "" : "!") + "= 0) "
+                querystatus = " AND incident.id IN (select incidentgroups.incident_id from incidentgroups group by incidentgroups.incident_id having min(incidentgroups.complete) " + (status[0].key ? "" : "!") + "= 0) "
             }
-            if (value) {
-                queryvalue = " AND (incident.title like '%" + value + "%' OR incident.title like '%" + description + "%') "
+            if (val) {
+                queryvalue = " AND (incident.title like '%" + val + "%' OR incident.description like '%" + val + "%') "
             }
-            const [rows, fields] = await connection.execute('select incident.*, incidentgroups.group_id, incidentgroups.complete, incidentgroups.time_sent, groups.name, incidentgroups.id as incidentgroup_id ' +
+            const [rows, fields] = await DataBase.Execute('select incident.*, incidentgroups.group_id, incidentgroups.complete, incidentgroups.time_sent, groups.name, incidentgroups.id as incidentgroup_id ' +
                 'from incident ' +
                 'left join incidentgroups on incidentgroups.incident_id = incident.id ' +
                 'left join groups on incidentgroups.group_id = groups.id ' +
                 'where 1=1 ' + querystart + queryend + querystatus + queryvalue, []);
-            // const [Urows, Ufields] = await connection.execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id');
-            const [Urows, Ufields] = await connection.execute('select * from grouprows');
-            // const [calendar_rows, calendar_fields] = await connection.execute('select * from calendars_events left join users on calendars_events.user_id = users.id');
-            const [Nrows, Nfields] = await connection.execute('select row_id, user_id, incidentgroup_id, max(timeget) as timeget, MIN(timecheck) as timecheck, Min(timesent) as timesent, user_type, calendar_id from notification group by incidentgroup_id, row_id, user_id');
+            // const [Urows, Ufields] = await DataBase.Execute('select * from grouprows left join grouprowusers on grouprowusers.row_id = grouprows.id left join users on grouprowusers.user_id = users.id');
+            const [Urows, Ufields] = await DataBase.Execute('select * from grouprows');
+            // const [calendar_rows, calendar_fields] = await DataBase.Execute('select * from calendars_events left join users on calendars_events.user_id = users.id');
+            const [Nrows, Nfields] = await DataBase.Execute('select row_id, user_id, incidentgroup_id, max(timeget) as timeget, MIN(timecheck) as timecheck, Min(timesent) as timesent, user_type, calendar_id from notification group by incidentgroup_id, row_id, user_id');
             let rows_tmp = {};
-
             for (let j in Urows) {
                 if (!rows_tmp[Urows[j].group_id]) {
                     rows_tmp[Urows[j].group_id] = {};
@@ -84,10 +102,10 @@ module.exports = {
                 Urows.forEach((row) => {
                     rows_ids.push(row.id);
                 });
-                const [users_rows, users_fields] = await connection.execute(`select Concat('user_', user_id) as value, user_id as id, users.name as text, 'user' as type, grouprowusers.row_id from grouprowusers 
+                const [users_rows, users_fields] = await DataBase.Execute(`select Concat('user_', user_id) as value, user_id as id, users.name as text, 'user' as type, grouprowusers.row_id from grouprowusers 
             left join users on users.id = grouprowusers.user_id 
             where grouprowusers.row_id in (${rows_ids.join(",")})`, []);
-                const [calendar_rows, calendar_fields] = await connection.execute(`select Concat('group_', calendar_id) as value, calendar_id as id, calendars.name as text, 'group' as type, grouprowcalendars.row_id from grouprowcalendars
+                const [calendar_rows, calendar_fields] = await DataBase.Execute(`select Concat('group_', calendar_id) as value, calendar_id as id, calendars.name as text, 'group' as type, grouprowcalendars.row_id from grouprowcalendars
             left join calendars on calendars.id = grouprowcalendars.calendar_id 
             where grouprowcalendars.row_id in (${rows_ids.join(",")})`, []);
                 let users = users_rows.concat(calendar_rows);
@@ -188,7 +206,8 @@ module.exports = {
             }
 
             // console.log(rows);
-            connection.end();
+            //connection.end();
+            // console.warn(result_array);
             return result_array;
         } catch (e) {
             console.log(new Date() + ' :!:::: ' + e)

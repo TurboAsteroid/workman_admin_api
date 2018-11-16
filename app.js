@@ -47,6 +47,7 @@ require('./routes/tags')(app, config, router);
 require('./routes/file')(app, config, router);
 require('./routes/info')(app, config, router);
 require('./routes/calendars')(app, config, router);
+require('./routes/report')(app, config, router);
 
 app.use(router);
 module.exports = app;

@@ -1,3 +1,5 @@
+let DataBase = require('../routes/db');
+
 module.exports = function(app, config, firebase_admin, router) {
     // var express = require('express');
     // var router = express.Router();
@@ -6,16 +8,16 @@ module.exports = function(app, config, firebase_admin, router) {
     const mysql = require('mysql2/promise');
 
     router.post('/users/logout', async function (req, res, next) {
-        const connection = await mysql.createConnection(config.dbConfig);
-        const [rows, fields] = await connection.execute('delete from tokens where token = ?', [req.body.token]);
-        connection.end();
+        //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+        const [rows, fields] = await DataBase.Execute('delete from tokens where token = ?', [req.body.token]);
+        //connection.end();
         res.json({status: '1'});
     });
 
     async function getallusers (req, res, next) {
-        const connection = await mysql.createConnection(config.dbConfig);
-        const [rows, fields] = await connection.execute('select * from users order by name', []);
-        connection.end();
+        //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+        const [rows, fields] = await DataBase.Execute('select * from users order by name', []);
+        //connection.end();
         return await rows;
     }
 
@@ -46,9 +48,9 @@ module.exports = function(app, config, firebase_admin, router) {
                 res.status(405).send({status: "false"});
                 return;
             }
-            const connection = await mysql.createConnection(config.dbConfig);
-            await connection.execute('insert into users (name, login) values (?, ?) ON DUPLICATE KEY UPDATE login=login', [users[0].displayName, users[0].sAMAccountName]);
-            connection.end();
+            //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+            await DataBase.Execute('insert into users (name, login) values (?, ?) ON DUPLICATE KEY UPDATE login=login', [users[0].displayName, users[0].sAMAccountName]);
+            //connection.end();
 
             // res.status(200).send(await getallusers());
             res.status(200).send({status: "ok"});
@@ -71,21 +73,21 @@ module.exports = function(app, config, firebase_admin, router) {
                     }
                     else {
                         let newuser = async function () {
-                            const connection = await mysql.createConnection(config.dbConfig);
-                            const [rows, fields] = await connection.execute('select * from users where login = ?', [req.body.login]);
+                            //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+                            const [rows, fields] = await DataBase.Execute('select * from users where login = ?', [req.body.login]);
                             let user_id;
                             if (rows.length) {
                                 user_id = rows[0].id;
                             } else {
-                                const [newuserR, newuserF] = await connection.execute('INSERT into users (name, login) values (?, ?)', [user.displayName, req.body.login]);
+                                const [newuserR, newuserF] = await DataBase.Execute('INSERT into users (name, login) values (?, ?)', [user.displayName, req.body.login]);
                                 user_id = newuserR.insertId;
                             }
 
-                            await connection.execute('insert into tokens (token, user_id) values (?, ?)', [req.body.token, user_id]);
+                            await DataBase.Execute('insert into tokens (token, user_id) values (?, ?)', [req.body.token, user_id]);
 
                             res.json({status: 1, userid: rows.insertId, name: user.displayName});
 
-                            connection.end();
+                            //connection.end();
                         };
                         newuser();
                     }
@@ -95,10 +97,10 @@ module.exports = function(app, config, firebase_admin, router) {
     });
     router.get('/users/getbytoken', function (req, res, next) {
         let getusers = async function () {
-            const connection = await mysql.createConnection(config.dbConfig);
-            const [rows, fields] = await connection.execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [req.query.token]);
+            //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+            const [rows, fields] = await DataBase.Execute('select users.id, users.login, users.name from tokens left join users on users.id = tokens.user_id where tokens.token = ?', [req.query.token]);
             if (rows.length > 0 && rows[0] && rows[0].id) {
-                const [rows1, fields1] = await connection.execute('select notification.id, notification.complete, incident.title, incident.description from notification ' +
+                const [rows1, fields1] = await DataBase.Execute('select notification.id, notification.complete, incident.title, incident.description from notification ' +
                     'left join incidentgroups on notification.incidentGroup_id = incidentgroups.id ' +
                     'left join incident on incident.id = incidentgroups.incident_id ' +
                     'where user_id = ? and (notification.complete = 0 or TIMESTAMPDIFF(HOUR, notification.timesent, NOW()) <= 972) order by notification.complete, incident.datetime desc', [rows[0].id]);
@@ -107,7 +109,7 @@ module.exports = function(app, config, firebase_admin, router) {
             } else {
                 res.json({status: 0, userid: 0, name: '', notification: []});
             }
-            connection.end();
+            //connection.end();
         };
         getusers();
     });
