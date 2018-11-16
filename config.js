@@ -8,7 +8,7 @@ module.exports = {
     //     connectTimeout: 2000
     // },
     'dbConfig': {
-        host : '172.17.0.4',
+        host : '172.20.0.1',
         database : 'alertnotification',
         user: 'oiserv',
         password: '13de84leGOC3DogIhEK72AYIzIj2bu',
