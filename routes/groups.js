@@ -1,3 +1,5 @@
+let DataBase = require('../routes/db');
+
 module.exports = function(app, config, firebase_admin, router) {
 
     const mysql = require('mysql2/promise');
@@ -7,29 +9,30 @@ module.exports = function(app, config, firebase_admin, router) {
         let group_id = req.params.id;
         let name = req.body.name;
 
-        const connection = await mysql.createConnection(config.dbConfig);
-        await connection.execute('update groups SET name = ? where id = ?', [name, group_id]);
-        connection.end();
+        //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+        await DataBase.Execute('update groups SET name = ? where id = ?', [name, group_id]);
+        //connection.end();
 
         res.json({status: "ok"});
     });
     router.delete('/groups/:id', async function (req, res) {
         let group_id = req.params.id;
 
-        const connection = await mysql.createConnection(config.dbConfig);
-        await connection.execute('delete from groups where id = ?', [group_id ]);
-        connection.end();
+        //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+        await DataBase.Execute('delete from groups where id = ?', [group_id ]);
+        //connection.end();
 
         res.json({status: "ok"});
     });
     router.get('/groups/get', async function (req, res) {
-        const connection = await mysql.createConnection(config.dbConfig);
-        const [grR, grF] = await connection.execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id where tags_groups.id_groups IS NOT NULL ', []);
-        // const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
+        console.log("!!!! ",config.dbConfig);
+        //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+        const [grR, grF] = await DataBase.Execute('select tags_groups.id_groups as group_id, tags.text, tags.id from tags left join tags_groups on tags_groups.id_tags = tags.id where tags_groups.id_groups IS NOT NULL ', []);
+        // const [rows1, fields1] = await DataBase.Execute('select grouprows.*, groups.name, user_id, users.name as user_name from groups ' +
         //     'left join grouprows on groups.id = grouprows.group_id ' +
         //     'left join grouprowusers on grouprows.id = grouprowusers.row_id ' +
         //     'left join users on users.id = grouprowusers.user_id ', []);
-        const [rows1, fields1] = await connection.execute('select grouprows.*, groups.name, groups.id as groupp_id from groups ' +
+        const [rows1, fields1] = await DataBase.Execute('select grouprows.*, groups.name, groups.id as groupp_id from groups ' +
             'left join grouprows on groups.id = grouprows.group_id ', []);
 
         let tmp_result = {};
@@ -61,10 +64,10 @@ module.exports = function(app, config, firebase_admin, router) {
                 }
             });
             if (rows_ids.length) {
-                const [users_rows, users_fields] = await connection.execute(`select Concat('user_', user_id) as value, user_id as id, users.name as text, 'user' as type, grouprowusers.row_id from grouprowusers 
+                const [users_rows, users_fields] = await DataBase.Execute(`select Concat('user_', user_id) as value, user_id as id, users.name as text, 'user' as type, grouprowusers.row_id from grouprowusers 
                     left join users on users.id = grouprowusers.user_id 
                     where grouprowusers.row_id in (${rows_ids.join(",")})`, []);
-                const [calendar_rows, calendar_fields] = await connection.execute(`select Concat('group_', calendar_id) as value, calendar_id as id, calendars.name as text, 'group' as type, grouprowcalendars.row_id from grouprowcalendars
+                const [calendar_rows, calendar_fields] = await DataBase.Execute(`select Concat('group_', calendar_id) as value, calendar_id as id, calendars.name as text, 'group' as type, grouprowcalendars.row_id from grouprowcalendars
                     left join calendars on calendars.id = grouprowcalendars.calendar_id 
                     where grouprowcalendars.row_id in (${rows_ids.join(",")})`, []);
                 let users = users_rows.concat(calendar_rows);
@@ -99,16 +102,16 @@ module.exports = function(app, config, firebase_admin, router) {
         }
 
         res.json(result_array);
-        connection.end();
+        //connection.end();
     });
     router.post('/groups/saveall', async function (req, res, next) {
-        const connection = await mysql.createConnection(config.dbConfig);
-        await connection.execute('delete from tags_groups', []);
-        await connection.execute('delete from grouprowusers ', []);
-        await connection.execute('delete from grouprowcalendars ', []);
+        //const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
+        await DataBase.Execute('delete from tags_groups', []);
+        await DataBase.Execute('delete from grouprowusers ', []);
+        await DataBase.Execute('delete from grouprowcalendars ', []);
         for (let i in req.body) {
             let group = req.body[i];
-            await connection.execute('insert into groups (id, name) values (?, ?) ON DUPLICATE KEY UPDATE name = ?', [group.id, group.name, group.name]);
+            await DataBase.Execute('insert into groups (id, name) values (?, ?) ON DUPLICATE KEY UPDATE name = ?', [group.id, group.name, group.name]);
             for (let j in group.data) {
                 let row = group.data[j];
                 if (!row.users.length) {
@@ -116,10 +119,10 @@ module.exports = function(app, config, firebase_admin, router) {
                 }
                 let ins_id;
                 if (row.id) {
-                    await connection.execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?) ON DUPLICATE KEY UPDATE row_number = ?, delay = ?', [row.id, group.id, row.row_number, row.delay, row.row_number, row.delay]);
+                    await DataBase.Execute('insert into grouprows (id, group_id, row_number, delay) values (?,?,?,?) ON DUPLICATE KEY UPDATE row_number = ?, delay = ?', [row.id, group.id, row.row_number, row.delay, row.row_number, row.delay]);
                     ins_id = row.id;
                 } else {
-                    const [GroupRows_res, GroupRows_fielsd] = await connection.execute('insert into grouprows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
+                    const [GroupRows_res, GroupRows_fielsd] = await DataBase.Execute('insert into grouprows (group_id, row_number, delay) values (?,?,?)', [group.id, row.row_number, row.delay]);
                     ins_id = GroupRows_res.insertId;
                 }
 
@@ -137,22 +140,22 @@ module.exports = function(app, config, firebase_admin, router) {
                     if (user_id && user_id !== null) {
                         switch (type) {
                             case "user":
-                                await connection.execute('insert into grouprowusers (user_id, row_id) values (?,?)', [user_id, ins_id]);
+                                await DataBase.Execute('insert into grouprowusers (user_id, row_id) values (?,?)', [user_id, ins_id]);
                                 break;
                             case "group":
-                                await connection.execute('insert into grouprowcalendars (calendar_id, row_id) values (?,?)', [user_id, ins_id]);
+                                await DataBase.Execute('insert into grouprowcalendars (calendar_id, row_id) values (?,?)', [user_id, ins_id]);
                                 break;
                         }
                     }
                 }
             }
-            await connection.execute('delete from tags_groups where id_groups = ?', [group.id]);
+            await DataBase.Execute('delete from tags_groups where id_groups = ?', [group.id]);
             for (let j in group.tags) {
-                await connection.execute('insert into tags_groups (id_tags, id_groups) values (?,?)', [group.tags[j].value, group.id]);
+                await DataBase.Execute('insert into tags_groups (id_tags, id_groups) values (?,?)', [group.tags[j].value, group.id]);
             }
         }
         res.sendStatus(200);
-        connection.end();
+        //connection.end();
 
     });
 
@@ -160,10 +163,10 @@ module.exports = function(app, config, firebase_admin, router) {
     // router.post('/groups/save', async function (req, res, next) {
     //     let data = JSON.parse(req.body.data);
     //
-    //      console.log("***");const connection = await mysql.createConnection(config.dbConfig);
+    //      console.log("***");//const connection = await DataBase.GetDB();// const connection = await mysql.createConnection(config.dbConfig);
     //     // query database
-    //     const [rows1, fields1] = await connection.execute('delete from groups where name=?', [req.body.name]);
-    //     const [rows2, fields2] = await connection.execute('insert into groups (name) values (?)', [req.body.name]);
+    //     const [rows1, fields1] = await DataBase.Execute('delete from groups where name=?', [req.body.name]);
+    //     const [rows2, fields2] = await DataBase.Execute('insert into groups (name) values (?)', [req.body.name]);
     //     console.warn("2rows, fields", rows2.insertId);
     //     let values = '';
     //
@@ -174,8 +177,8 @@ module.exports = function(app, config, firebase_admin, router) {
     //     values = values.substring(0, values.length - 1);
     //
     //
-    //     const [rows3, fields3] = await connection.execute('insert into grouprows (group_id, row_number, delay) values ' + values, []);
-    //     const [rows4, fields4] = await connection.execute('select * from grouprows where group_id = ?', [rows2.insertId]);
+    //     const [rows3, fields3] = await DataBase.Execute('insert into grouprows (group_id, row_number, delay) values ' + values, []);
+    //     const [rows4, fields4] = await DataBase.Execute('select * from grouprows where group_id = ?', [rows2.insertId]);
     //     let values2 = '';
     //     for (let k in rows4) {
     //         let row = rows4[k];
@@ -185,10 +188,10 @@ module.exports = function(app, config, firebase_admin, router) {
     //     }
     //     values2 = values2.substring(0, values2.length - 1);
     //     console.log(values2);
-    //     const [rows5, fields5] = await connection.execute('insert into grouprowusers (user_id, row_id) values ' + values2, []);
+    //     const [rows5, fields5] = await DataBase.Execute('insert into grouprowusers (user_id, row_id) values ' + values2, []);
     //
     //     res.json({ok: 1});
-    //     connection.end();
+    //     //connection.end();
     // });
 
     return router;
