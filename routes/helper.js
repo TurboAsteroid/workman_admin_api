@@ -71,7 +71,7 @@ module.exports = {
                 queryend = ' AND incident.datetime < "' + moment(timeend).add(1, 'day').format("YYYY-MM-DD") + '" ';
             }
             if (status) {
-                querystatus = " AND incident.id IN (select incidentgroups.incident_id from incidentgroups group by incidentgroups.incident_id having min(incidentgroups.complete) " + (status[0].key ? "" : "!") + "= 0) "
+                querystatus = " AND incident.id IN (select incidentgroups.incident_id from incidentgroups group by incidentgroups.incident_id having min(incidentgroups.complete) " + (status[0].key ? "!" : "") + "= 0) "
             }
             if (val) {
                 queryvalue = " AND (incident.title like '%" + val + "%' OR incident.description like '%" + val + "%') "
