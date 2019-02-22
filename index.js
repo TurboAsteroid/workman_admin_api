@@ -9,13 +9,13 @@ var config = require('./config');
 
 const mysql = require('mysql2/promise');
 
-// const privateKey = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/privkey.pem', 'utf8');
-// const certificate = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/cert.pem', 'utf8');
-// const ca = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/chain.pem', 'utf8');
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/chain.pem', 'utf8');
 
-const privateKey = fs.readFileSync('./apps.elem.ru/privkey1.pem', 'utf8');
-const certificate = fs.readFileSync('./apps.elem.ru/cert1.pem', 'utf8');
-const ca = fs.readFileSync('./apps.elem.ru/chain1.pem', 'utf8');
+// const privateKey = fs.readFileSync('./apps.elem.ru/privkey1.pem', 'utf8');
+// const certificate = fs.readFileSync('./apps.elem.ru/cert1.pem', 'utf8');
+// const ca = fs.readFileSync('./apps.elem.ru/chain1.pem', 'utf8');
 
 const credentials = {
   key: privateKey,
