@@ -1,15 +1,14 @@
 {
-  "name": "oi_serv",
+  "name": "admin-corp-api",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "activedirectory2": "^1.2.6",
-    "cookie-parser": "~1.4.3",
-    "cors": "^2.8.4",
-    "debug": "~2.6.9",
+    "ad-promise": "^1.6.8",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.5",
     "eslint": "^5.9.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-config-standart": "^0.2.0",
@@ -18,18 +17,10 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "express": "~4.16.0",
-    "express-formidable": "^1.0.0",
-    "firebase-admin": "^5.12.1",
-    "formidable": "^1.2.1",
-    "http-errors": "~1.6.2",
-    "jade": "~1.11.0",
-    "jsonwebtoken": "^8.3.0",
-    "mime": "^2.3.1",
-    "moment": "^2.22.2",
-    "morgan": "~1.9.0",
-    "mysql2": "^1.6.1",
-    "node-schedule": "^1.3.0",
-    "socket.io": "^2.1.1",
-    "uniqid": "^5.0.3"
+    "jsonwebtoken": "^8.4.0",
+    "morgan": "^1.9.1",
+    "mysql2": "^1.6.5",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
   }
 }

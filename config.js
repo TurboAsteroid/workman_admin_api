@@ -1,32 +1,18 @@
 module.exports = {
-    // 'dbConfig': {
-    //     host : '10.1.255.208',
-    //     database : 'alertnotification',
-    //     user: 'oiserv',
-    //     password: '13de84leGOC3DogIhEK72AYIzIj2bu',
-    //     port: 3334,
-    //     connectTimeout: 2000
-    // },
-    'dbConfig': {
-        host : '172.20.0.1',
-        database : 'alertnotification',
-        user: 'oiserv',
-        password: '13de84leGOC3DogIhEK72AYIzIj2bu',
-        port: 3306,
-        connectTimeout: 2000
-    },
-    // 'dbConfig': {
-    //     host : '127.0.0.1',
-    //     database : 'alertnotification',
-    //     user: 'oiserv',
-    //     password: '5I4E4i',
-    //     port: 3306,
-    //     connectTimeout: 2000
-    // },
-
-    'ldapurl': 'ldap://10.1.255.29',
-    'ldapbaseDN': 'dc=elem,dc=ru',
-    'username': 'gs2@elem.ru',
-    'password': 'gs2-1',
-    'jwtSecret': 'dasdfkpoiawerupofwjei13241234opasdfasfmjcu346saotgeyyuqwfhiojpasiuGIUYGIUGHKJYG'
-};
+  mariadb: {
+    connectionLimit: 10000,
+    waitForConnections: true,
+    host: '10.1.255.208',
+    port: '3337',
+    database: 'corp',
+    user: 'root',
+    password: 'maSHasUraLmaSha'
+  },
+  adConfig: {
+    url: 'ldap://10.1.255.29',
+    baseDN: 'dc=elem,dc=ru',
+    username: 'gs2@elem.ru',
+    password: 'gs2-1'
+  },
+  mainApi: 'https://apps.elem.ru/corp_api/'
+}
