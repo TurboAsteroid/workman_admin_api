@@ -1,20 +1,20 @@
 module.exports = {
-    // 'dbConfig': {
-    //     host : '10.1.255.208',
-    //     database : 'alertnotification',
-    //     user: 'oiserv',
-    //     password: '13de84leGOC3DogIhEK72AYIzIj2bu',
-    //     port: 3334,
-    //     connectTimeout: 2000
-    // },
     'dbConfig': {
-        host : '172.20.0.1',
+        host : '10.1.255.208',
         database : 'alertnotification',
         user: 'oiserv',
         password: '13de84leGOC3DogIhEK72AYIzIj2bu',
-        port: 3306,
+        port: 3334,
         connectTimeout: 2000
     },
+    // 'dbConfig': {
+    //     host : '172.20.0.1',
+    //     database : 'alertnotification',
+    //     user: 'oiserv',
+    //     password: '13de84leGOC3DogIhEK72AYIzIj2bu',
+    //     port: 3306,
+    //     connectTimeout: 2000
+    // },
     // 'dbConfig': {
     //     host : '127.0.0.1',
     //     database : 'alertnotification',
