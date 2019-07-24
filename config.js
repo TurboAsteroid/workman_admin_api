@@ -6,7 +6,8 @@ module.exports = {
     port: '3337',
     database: 'corp',
     user: 'root',
-    password: 'maSHasUraLmaSha'
+    password: 'maSHasUraLmaSha',
+    namedPlaceholders: true
   },
   adConfig: {
     url: 'ldap://10.1.255.29',
@@ -14,5 +15,6 @@ module.exports = {
     username: 'gs2@elem.ru',
     password: 'gs2-1'
   },
-  mainApi: 'https://apps.elem.ru/corp_api/'
+  mainApi: 'http://10.1.100.33:3010/'
+  // mainApi: 'https://apps.elem.ru/corp_api/'
 }

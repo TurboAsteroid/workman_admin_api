@@ -7,7 +7,13 @@ const router = express.Router()
 let ad = new ActiveDirectory(config.adConfig)
 
 router.all('*', async function (req, res, next) {
-  if ((req.headers.authorization !== undefined && req.headers.authorization !== null) || (req.query.jwt !== undefined && req.query.jwt !== null)) {
+  if (
+    req.originalUrl === '/login'
+  ) next()
+  else if (
+    (req.headers.authorization !== undefined && req.headers.authorization !== null) ||
+    (req.query.jwt !== undefined && req.query.jwt !== null)
+  ) {
     try {
       let token = ''
       if (req.query.jwt !== undefined && req.query.jwt !== null) {
@@ -30,7 +36,7 @@ router.all('*', async function (req, res, next) {
       return res.json({"status": 'ERROR', "message": err})
     }
   } else {
-    return res.json({"status": 'ERROR', "message": "Authenticated failed!"})
+    res.status(403).send('Access denied')
   }
 })
 
