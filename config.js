@@ -15,6 +15,7 @@ module.exports = {
     username: 'gs2@elem.ru',
     password: 'gs2-1'
   },
-  mainApi: 'http://10.1.100.33:3010/'
-  // mainApi: 'https://apps.elem.ru/corp_api/'
+  // mainApi: 'http://10.1.100.33:3010/'
+  mainApi: 'https://apps.elem.ru/corp_api/',
+  port: 3033
 }

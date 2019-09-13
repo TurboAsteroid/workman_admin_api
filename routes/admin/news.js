@@ -19,8 +19,18 @@ router.get('/details/:newsId', async function (req, res, next) {
 
   res.json(sqlResult[0])
 })
+router.post('/delete', async function (req, res, next) {
+  if (!parseInt(req.body.newsId)) {
+    return res.json({ status: 'error', message: 'Не указан ID для удаления' })
+  }
+  try {
+    await db.q(`delete from news where id = ?`, [req.body.newsId])
+  } catch (err) {
+    return res.json({ status: 'error', message: 'Ошибка при удалении новости, попробуйте ещё раз' })
+  }
+  res.json({ status: 'ok', message: 'Новость удалена', remove: true, newsId: req.body.schedulenewsIdId })
+})
 router.post('/save/:newsId', upload.single('newsImage'), async function (req, res, next) {
-
   if (!req.body.moduleId || !req.body.title) {
     return res.json({ status: 'error', message: 'Поля "Заголовок новости", "id модуля" и "id новости" обязательны для заполнения' })
   }
