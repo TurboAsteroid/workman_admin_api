@@ -5,7 +5,6 @@ let cors = require('cors')
 let app = express()
 let config = require('./config')
 
-
 app.use(cors({ origin: '*' }))
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By') // чтобы не палить кто сервер

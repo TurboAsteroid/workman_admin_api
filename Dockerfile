@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:alpine
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -17,5 +17,5 @@ RUN mkdir -p /etc/letsencrypt
 # Bundle app source
 COPY . .
 
-EXPOSE 3002
+EXPOSE 3033
 CMD [ "npm", "start" ]
