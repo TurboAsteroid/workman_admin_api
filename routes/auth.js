@@ -1,56 +1,36 @@
 const config = require('../config')
-const ActiveDirectory = require('ad-promise')
-const jwt = require('jsonwebtoken')
+
 const express = require('express')
 const router = express.Router()
+const db = require('../helpers/db')
+const jwt = require('jsonwebtoken')
+const passport = require('passport')
 
-let ad = new ActiveDirectory(config.adConfig)
-
-router.all('*', async function (req, res, next) {
-  if (
-    req.originalUrl === '/login'
-  ) next()
-  else if (
-    (req.headers.authorization !== undefined && req.headers.authorization !== null) ||
-    (req.query.jwt !== undefined && req.query.jwt !== null)
-  ) {
-    try {
-      let token = ''
-      if (req.query.jwt !== undefined && req.query.jwt !== null) {
-        token = req.query.jwt
-      } else {
-        token = req.headers.authorization.replace(/Bearer /g, '')
-      }
-
-      const decoded = jwt.verify(token, cfg.jwtSecret)
-
-      let authResult = await ad.authenticate(decoded.login, decoded.password)
-      if (authResult) {
-        console.log(`${decoded.login} Authenticated!`)
-        next()
-      } else {
-        console.log(`${req.body.user} Authenticated failed!`)
-        return res.json({"status": 'ERROR', "message": "Authenticated failed!"})
-      }
-    } catch (err) {
-      return res.json({"status": 'ERROR', "message": err})
+/* POST login. */
+router.post('/', function (req, res, next) {
+  passport.authenticate('local', { session: false }, (err, user, info) => {
+    if (err || !user) {
+      return res.status(400).json({
+        message: info ? info.message : 'Login failed',
+        user: user
+      })
     }
-  } else {
-    res.status(403).send('Access denied')
-  }
-})
+    req.login(user, { session: false }, async (err) => {
+      if (err) {
+        res.send(err)
+      }
+      // генерим токен и толкаем его в дата
+      const data = jwt.sign(JSON.stringify(user), config.jwtSecret)
+      const status = 'TOKEN'
+      try {
+        await db.q(`update users SET adminToken = ? where user = ?`, [ user.token, user.user ])
+      } catch (err) {
+        console.warn('Не могу записать токен firebase в базу')
+      }
 
-router.post('/auth/login', async (req, res) => {
-  let authResult = await ad.authenticate(req.body.user.login, req.body.user.password)
-  if (!authResult) {
-    console.log(`${req.body.user} Authenticated failed!`)
-    return res.json({"status": 'ERROR', "message": "Authenticated failed!"});
-  }
-
-  console.log(`${req.body.user.login} Authenticated!`)
-  let token = await jwt.sign({ login: req.body.user.login, password: req.body.user.password },
-    cfg.jwtSecret, { expiresIn: '24h'})
-  return res.json({"status": 'OK', "data": { auth: true, token: token, user: { name: req.body.user.login, isAdmin: 1 } }});
+      return res.json({ status, data })
+    })
+  })(req, res)
 })
 
 module.exports = router
