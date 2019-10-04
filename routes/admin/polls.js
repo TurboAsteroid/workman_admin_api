@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const db = require('../db')
+const db = require('../../helpers/db')
 const config = require('../../config')
 const multer = require('multer')
 const upload = multer({ dest: 'uploads/' })
