@@ -36,6 +36,10 @@ router.post('/delete', async function (req, res, next) {
     return res.json({ status: 'error', message: 'Не указан ID для удаления' })
   }
   try {
+    let [result] = await db.q(`select name from news_images where news_id = ?`, [req.body.newsId])
+    for (let k in result) {
+      helper.removeFiles(result[k].name)
+    }
     await db.q(`delete from news where id = ?`, [req.body.newsId])
   } catch (err) {
     return res.json({ status: 'error', message: 'Ошибка при удалении новости, попробуйте ещё раз' })
@@ -47,6 +51,7 @@ router.post('/save/:newsId', upload.any(), async function (req, res, next) {
   if (!req.body.moduleId || !req.body.title) {
     return res.json({ status: 'error', message: 'Поля "Заголовок новости", "id модуля" и "id новости" обязательны для заполнения' })
   }
+  let j = 0
   if (!parseInt(req.body.newsId)) {
     try {
       let [result] = await db.q(`insert into news (module_id,link, title, description, full_description) values (?, ?, ?, ?, ?)`,
@@ -81,29 +86,28 @@ router.post('/save/:newsId', upload.any(), async function (req, res, next) {
       console.log(err)
       return res.json({ status: 'error', message: 'Ошибка при обновлении данных, попробуйте ещё раз' })
     }
-    if (JSON.parse(req.body.oldFiles).length) {
-      let [result] = await db.q(`select name from news_images where news_id = ? and id not in (${JSON.parse(req.body.oldFiles).join(',')})`, [req.body.newsId])
-      for (let k in result) {
-        helper.removeFiles(result[k].name)
-      }
-      await db.q(`Delete from news_images where news_id = ? and id not in (${JSON.parse(req.body.oldFiles).join(',')})`, [req.body.newsId])
-    }
     let oldFiles = JSON.parse(req.body.oldFiles)
-    let j = 0
+    let oldFileRequest = oldFiles.length ? ` and id not in (${oldFiles.join(',')})` : '';
+    let [result] = await db.q(`select name from news_images where news_id = ? ${oldFileRequest}`, [req.params.newsId])
+
+    for (let k in result) {
+      helper.removeFiles(result[k].name)
+    }
+    await db.q(`Delete from news_images where news_id = ? ${oldFileRequest}`, [req.params.newsId])
     for (let i in oldFiles) {
       await db.q(`update news_images set description = ? where id = ?`, [JSON.parse(req.body.desc)[i], oldFiles[i]])
       j++
     }
-    if (req.files.length) {
-      let values = []
-      for (let i in req.files) {
-        let filename = await helper.saveAndCrop(req.files[i])
-        values.push(`(${req.body.newsId}, '${filename}', '${req.files[i].originalname.split('.')[0]}', '${JSON.parse(req.body.desc)[j] || ''}')`)
-        j++
-      }
-      await db.q(`insert into news_images (news_id, name, original_name, description) values ${values.join(',')}`, [])
-    }
-    return res.json({ status: 'ok', message: 'Данные успешно обновлены' })
   }
+  if (req.files.length) {
+    let values = []
+    for (let i in req.files) {
+      let filename = await helper.saveAndCrop(req.files[i])
+      values.push(`(${req.body.newsId}, '${filename}', '${req.files[i].originalname.split('.')[0]}', '${JSON.parse(req.body.desc)[j] || ''}')`)
+      j++
+    }
+    await db.q(`insert into news_images (news_id, name, original_name, description) values ${values.join(',')}`, [])
+  }
+  return res.json({ status: 'ok', message: 'Данные успешно обновлены' })
 })
 module.exports = router

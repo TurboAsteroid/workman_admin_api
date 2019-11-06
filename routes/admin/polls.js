@@ -77,15 +77,17 @@ router.post('/save', async function (req, res, next) {
   if (!req.body.moduleId || !req.body.title) {
     return res.json({ status: 'error', message: 'Поле "Название опроса" обязательно для заполнения' })
   }
-  console.log(req.body)
   if (!parseInt(req.body.pollId)) {
     try {
-      let [result] = await db.q(`insert into polls (module_id, title, description, dateEnd) values (?, ?, ?, ?)`,
+      console.log('req.body.active', req.body.active, req.body.closed)
+      let [result] = await db.q(`insert into polls (module_id, title, description, dateEnd, active, closed) values (?, ?, ?, ?, ?, ?)`,
         [
           req.body.moduleId,
           req.body.title,
           req.body.description || '',
-          req.body.dateEnd || null
+          req.body.dateEnd || null,
+          req.body.active ? 1 : 0,
+          req.body.closed ? 1 : 0
         ])
       req.body.pollId = result.insertId
     } catch (err) {
@@ -101,10 +103,12 @@ router.post('/save', async function (req, res, next) {
         description: req.body.description || '',
         id: req.body.pollId,
         module_id: req.body.moduleId,
-        date_end: req.body.dateEnd || new Date()
+        date_end: req.body.dateEnd || new Date(),
+        active: req.body.active ? 1 : 0,
+        closed: req.body.closed ? 1 : 0
       }
 
-      let result = await db.r(`Update polls SET title=:title, description=:description, dateEnd=:date_end where id = :id and module_id = :module_id`, params)
+      let result = await db.r(`Update polls SET title=:title, description=:description, dateEnd=:date_end, active=:active, closed=:closed where id = :id and module_id = :module_id`, params)
       if (result.affectedRows === 0) {
         return res.json({ status: 'error', message: 'Не верные параметры запроса, данный раздел не существует' })
       }
@@ -114,6 +118,30 @@ router.post('/save', async function (req, res, next) {
     }
 
     return res.json({ status: 'ok', message: 'Данные успешно обновлены', pollId: req.body.pollId })
+  }
+})
+router.post('/delete', async function (req, res, next) {
+  if (!parseInt(req.body.pollId)) {
+    return res.json({ status: 'error', message: 'Не указан ID для удаления' })
+  }
+  try {
+    await db.q(`delete from polls where id = ?`, [req.body.pollId])
+  } catch (err) {
+    return res.json({ status: 'error', message: 'Ошибка при удалении опроса, попробуйте ещё раз' })
+  }
+  res.json({ status: 'ok', message: 'Опрос удалена', remove: true })
+})
+router.post('/question/delete', async function (req, res, next) {
+  if (!parseInt(req.body.questionId)) {
+    return res.json({ status: 'error', message: 'Не указан ID для удаления' })
+  }
+  try {
+    let [result] = await db.q(`select module_id, poll_id from questions left join polls on polls.id = poll_id where questions.id = ?`, [req.body.questionId])
+    await db.q(`delete from questions where id = ?`, [req.body.questionId])
+
+    res.json({ status: 'ok', message: 'Вопрос удалена', remove: true, poll_id: result[0].poll_id, module_id: result[0].module_id })
+  } catch (err) {
+    return res.json({ status: 'error', message: 'Ошибка при удалении вопроса, попробуйте ещё раз' })
   }
 })
 module.exports = router

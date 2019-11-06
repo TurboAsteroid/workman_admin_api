@@ -26,14 +26,13 @@ router.post('/save/:moduleId', upload.any(), async function (req, res, next) {
     return res.json({ status: 'error', message: 'Поля "id модуля" обязательно для заполнения' })
   }
 
-  if (JSON.parse(req.body.oldFiles).length) {
-    let [result] = await db.q(`select name from gallery_images where module_id = ? and id not in (${JSON.parse(req.body.oldFiles).join(',')})`, [req.params.moduleId])
-    for (let k in result) {
-      helper.removeFiles(result[k].name)
-    }
-    await db.q(`Delete from gallery_images where news_id = ? and id not in (${JSON.parse(req.body.oldFiles).join(',')})`, [req.params.moduleId])
-  }
   let oldFiles = JSON.parse(req.body.oldFiles)
+  let oldFileRequest = oldFiles.length ? ` and id not in (${oldFiles.join(',')})` : '';
+  let [result] = await db.q(`select name from gallery_images where module_id = ? ${oldFileRequest}`, [req.params.moduleId])
+  for (let k in result) {
+    helper.removeFiles(result[k].name)
+  }
+  await db.q(`Delete from gallery_images where module_id = ? ${oldFileRequest}`, [req.params.moduleId])
   let j = 0
   for (let i in oldFiles) {
     await db.q(`update gallery_images set description = ? where id = ?`, [JSON.parse(req.body.desc)[i], oldFiles[i]])
