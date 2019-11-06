@@ -11,6 +11,7 @@ const pollsRouter = require('./polls.js')
 const scheduleRouter = require('./schedule.js')
 const feedbackRouter = require('./feedback.js')
 const galleryRouter = require('./gallery.js')
+const medicRouter = require('./medic.js')
 
 router.use('/mainMenu', menuRouter)
 router.use('/structure', passport.authenticate('jwt'), structureRouter)
@@ -21,5 +22,6 @@ router.use('/polls', passport.authenticate('jwt'), pollsRouter)
 router.use('/schedule', passport.authenticate('jwt'), scheduleRouter)
 router.use('/feedback', passport.authenticate('jwt'), feedbackRouter)
 router.use('/gallery', passport.authenticate('jwt'), galleryRouter)
+router.use('/medic', passport.authenticate('jwt'), medicRouter)
 
 module.exports = router

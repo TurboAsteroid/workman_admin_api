@@ -9,7 +9,7 @@ firebaseAdmin.initializeApp({
 })
 
 router.get('/getallrequests', async function (req, res, next) {
-  let [sqlResult] = await db.q(`select id, title, body, user_email from requests `, [])
+  let [sqlResult] = await db.q(`select id, title, body, user_email, user_id from requests `, [])
   let html = '<ol>'
   for (let i in sqlResult) {
     sqlResult[i].body = unescape(sqlResult[i].body)
@@ -18,9 +18,11 @@ router.get('/getallrequests', async function (req, res, next) {
       if (sqlResult[i].body.error_desc) {
         sqlResult[i].body = sqlResult[i].body.error_desc
       }
+      if (sqlResult[i].body.body) {
+        sqlResult[i].body = sqlResult[i].body.body
+      }
     } catch (e) {}
-
-    html += `<li><B>${unescape(sqlResult[i].title)}</B>: ${sqlResult[i].body}</div></div></li>`
+    html += `<li><B>${unescape(sqlResult[i].title)}</B>: ${sqlResult[i].body} (${sqlResult[i].user_id})</li>`
     // html += `<li><div>${sqlResult[i].user_email}<B>${unescape(sqlResult[i].title)}</B><div>${sqlResult[i].body}</div></div></li>`
   }
   html += '</ol>'
@@ -118,7 +120,6 @@ router.get('/getstats', async function (req, res, next) {
   // for (let user of use   rs.docs) {
   //   console.log('12', user.id)
   // }
-
 })
 
 module.exports = router

@@ -14,6 +14,7 @@ async function pass () {
     passwordField: 'pass'
   },
   async function (user, password, cb) {
+    console.log('user', user, password)
     try {
       const [userSQL] = await db.q(`select * from users where user = ? and admin = 1 limit 1;`, [user])
       if (userSQL[0] && userSQL[0].salt && userSQL[0].password === helper.sha512(password, userSQL[0].salt)) {

@@ -3,6 +3,7 @@ const router = express.Router()
 const db = require('../../helpers/db')
 const config = require('../../config')
 const multer = require('multer')
+const helper = require('../../helpers/helper')
 const upload = multer({ dest: 'uploads/' })
 const fs = require("fs")
 const rp = require('request-promise')
@@ -33,11 +34,17 @@ router.get('/details/:scheduleId?', async function (req, res, next) {
   if (req.params.scheduleId) {
     let [sqlResult] = await db.q(`select * from schedule where id = ?`, [req.params.scheduleId])
     result = sqlResult[0]
+    result.avatar = {
+      uid: result.id.toString(),
+      name: result.name,
+      status: 'done',
+      url: await helper.getImageLink(result.image_name, 'original'),
+      thumbUrl: await helper.getImageLink(result.image_name, '50_50')
+    }
 
     let [pointsResult] = await db.q(`select schedule_points.*, schedule_item.datetime as title from schedule_points left join schedule_item on schedule_points.id = schedule_item.point_id where schedule_item.schedule_id = ?`, [req.params.scheduleId])
     result.schedule = pointsResult
-  }
-  else {
+  } else {
     let [pointsResult] = await db.q(`select schedule_points.*, "" as title from schedule_points `, [])
     result.schedule = pointsResult
   }
@@ -55,21 +62,27 @@ router.post('/delete', async function (req, res, next) {
   }
   res.json({ status: 'ok', message: 'Расписание удалено', remove: true, scheduleId: req.body.scheduleId })
 })
-router.post('/save', async function (req, res, next) {
-  console.log(req.body)
-  if (!req.body.module_id || !req.body.header) {
-    return res.json({ status: 'error', message: 'Поле "Название объекта" обязательно для заполнения' })
+router.post('/save', upload.single('avatar'), async function (req, res, next) {
+  if (!req.body.module_id || !req.body.name) {
+    return res.json({ status: 'error', message: 'Поле "Фамилия" обязательно для заполнения' })
+  }
+
+  let filename
+  if (req.file) {
+    filename = await helper.saveAndCrop(req.file)
   }
 
   if (!parseInt(req.body.scheduleId)) {
     try {
-      let [result] = await db.q(`insert into schedule (header, subheader, scheduleName, description, module_id) values (?,?,?,?,?)`,
+      let [result] = await db.q(`insert into schedule (name, surname, patronymic, position, description, module_id ${filename ? ', image_name' : ''}) values (?,?,?,?,?,?${filename ? ',?' : ''})`,
         [
-          req.body.header,
-          req.body.subheader || '',
-          req.body.scheduleName || '',
+          req.body.name,
+          req.body.surname || '',
+          req.body.patronymic || '',
+          req.body.position || '',
           req.body.description || '',
-          req.body.module_id
+          req.body.module_id,
+          filename || ''
         ])
       req.body.scheduleId = result.insertId
 
@@ -80,21 +93,27 @@ router.post('/save', async function (req, res, next) {
       // await db.q(`delete from schedule_item where schedule_id = ?`, [req.body.scheduleId])
       await db.q(`insert into schedule_item (point_id, datetime, schedule_id) values ?`, [items])
     } catch (err) {
-      return res.json({ status: 'error', message: 'Ошибка при добавлении данных, попробуйте ещё раз' })
+      return res.json({ status: 'error', message: 'Ошибка при добавлении данных, попробуйте ещё раз', err })
     }
 
     res.json({ status: 'ok', message: 'Опрос успешно добавлен', redirect: true, scheduleId: req.body.scheduleId })
   } else {
     try {
+      if (filename) {
+        let [result] = await db.q(`select image_name from schedule where id = ?`, [req.body.scheduleId])
+        if (result[0].name) helper.removeFiles(result[0].name)
+      }
       let params = {
-        header: req.body.header || '',
-        subheader: req.body.subheader || '',
-        scheduleName: req.body.scheduleName || '',
+        name: req.body.name || '',
+        surname: req.body.surname || '',
+        patronymic: req.body.patronymic || '',
+        position: req.body.position || '',
         description: req.body.description || '',
         id: req.body.scheduleId,
-        module_id: req.body.module_id
+        module_id: req.body.module_id,
+        image_name: filename
       }
-      await db.r(`Update schedule SET header=:header, subheader=:subheader, scheduleName=:scheduleName, description=:description where id = :id and module_id = :module_id`, params)
+      await db.r(`Update schedule SET name=:name, surname=:surname, patronymic=:patronymic, position=:position, description=:description ${filename ? ', image_name=:image_name' : ''} where id = :id and module_id = :module_id`, params)
       let items = []
       for (let i in req.body.schedule) {
         if (req.body.schedule[i] !== null) items.push([i, req.body.schedule[i] || '', req.body.scheduleId])
