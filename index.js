@@ -8,6 +8,8 @@ let app = require('./app')
 let debug = require('debug')('corp-api:server')
 let config = require('./config')
 let http = require('http')
+let https = require('https')
+let fs = require('fs')
 
 /**
  * Get port from environment and store in Express.
@@ -20,7 +22,15 @@ app.set('port', port)
  * Create HTTP server.
  */
 
-let server = http.createServer(app)
+// let server = http.createServer(app)
+
+const credentials = {
+  key: fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/privkey.pem', 'utf8'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/cert.pem', 'utf8'),
+  ca: fs.readFileSync('/etc/letsencrypt/live/apps.elem.ru/chain.pem', 'utf8')
+}
+
+let server = https.createServer(credentials, app)
 
 /**
  * Listen on provided port, on all network interfaces.

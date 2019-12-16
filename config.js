@@ -17,8 +17,26 @@ module.exports = {
     username: 'gs2@elem.ru',
     password: 'gs2-1'
   },
+  kisdb: {
+    user: 'oit',
+    password: 'wn}{GoiN32',
+    server: '10.1.255.26',
+    database: 'TestUp',
+    options: {
+      encrypt: false
+    }
+  },
+  cloth: {
+    user: 'bpo',
+    password: 'Marina2830',
+    server: '10.1.255.120',
+    database: 'SAP',
+    options: {
+      encrypt: false
+    }
+  },
   // hostName: 'http://10.1.100.33:3033/',
-  hostName: 'http://apps.elem.ru:3033/',
+  hostName: 'https://apps.elem.ru:3033/',
   mainApi: 'https://apps.elem.ru/corp_api/',
   port: 3033,
   jwtSecret: 'sdfgthyujkiolsdkpoifj',
