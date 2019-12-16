@@ -10,7 +10,7 @@ const rp = require('request-promise')
 const Buffer = require('buffer').Buffer
 
 router.get('/list/:moduleId', async function (req, res, next) {
-  let [sqlResult] = await db.q(`select * from news where module_id = ?`, [req.params.moduleId])
+  let [sqlResult] = await db.q(`select * from news where module_id = ? order by time_created desc`, [parseInt(req.params.moduleId)])
   res.json(sqlResult)
 })
 
@@ -23,8 +23,8 @@ router.get('/details/:newsId', async function (req, res, next) {
       uid: images[i].id.toString(),
       name: images[i].original_name,
       status: 'done',
-      url: await helper.getImageLink(images[i].name, 'original'),
-      thumbUrl: await helper.getImageLink(images[i].name, '50_50'),
+      url: await helper.getImageLink(images[i].name, '1920_1080'),
+      thumbUrl: await helper.getImageLink(images[i].name, '500_'),
       description: images[i].description
     })
   }

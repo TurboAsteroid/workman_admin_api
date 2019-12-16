@@ -9,6 +9,8 @@ const db = require('./helpers/db')
 let app = express()
 require('./helpers/passport')
 
+const process = require('process')
+
 app.use(passport.initialize())
 passport.serializeUser(function(user, done) {
   done(null, user)
@@ -44,7 +46,11 @@ app.use(async function (req, res, next) {
     console.warn('не могу добавить запись в лог реквестов', err)
     next()
   }
-});
+})
+
+process.on('uncaughtException', (err, origin) => {
+  console.log(`Caught exception: ${err} Exception origin: ${origin}`)
+})
 
 const authRouter = require('./routes/auth.js')
 const mainRouter = require('./routes')

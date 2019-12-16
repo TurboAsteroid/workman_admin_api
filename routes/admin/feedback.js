@@ -57,8 +57,8 @@ router.post('/save/:feedbackId', async function (req, res, next) {
         module_id: req.body.moduleId
       }
 
-      let reult = await db.r(`Update news SET title=:title, description=:description, link=:link, full_description=:full_description where id = :id and module_id = :module_id`, params)
-      if (reult.affectedRows === 0) {
+      let result = await db.r(`Update news SET title=:title, description=:description, link=:link, full_description=:full_description where id = :id and module_id = :module_id`, params)
+      if (result.affectedRows === 0) {
         return res.json({ status: 'error', message: 'Не верные параметры запроса, данный раздел не существует' })
       }
     } catch (err) {
